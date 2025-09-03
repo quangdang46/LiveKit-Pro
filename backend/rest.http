@@ -1,0 +1,8 @@
+### Create Room
+POST http://localhost:3000/livekit/create-room
+Content-Type: application/json
+
+{
+  "callSid": "123",
+  "roomName": "test"
+}
