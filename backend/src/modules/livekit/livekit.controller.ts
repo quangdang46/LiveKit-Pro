@@ -1,15 +1,6 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { LivekitService } from './livekit.service';
 import { AgentService } from '../agent/agent.service';
-import { CreateCallDto } from './dto/new-call.dto';
 
 @Controller('livekit')
 export class LivekitController {
@@ -23,12 +14,12 @@ export class LivekitController {
     return { message: 'Hello World' };
   }
 
-  @Post('/create-room')
-  async createRoom(@Body() body: CreateCallDto) {
-    try {
-      return await this.agent.handleNewCall(body.callSid, body.roomName);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
+  @Get('token')
+  async getToken(
+    @Query('roomName') room: string,
+    @Query('userName') userName: string,
+  ) {
+    const token = await this.agent.createAccessToken(room, userName);
+    return { token };
   }
 }

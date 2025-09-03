@@ -8,12 +8,12 @@ import { ConfigService } from '@nestjs/config';
     AgentService,
     {
       provide: RoomServiceClient,
-      useFactory: (configService: ConfigService) =>
-        new RoomServiceClient(
-          configService.get('LIVEKIT_URL')!,
-          configService.get('LIVEKIT_API_KEY')!,
-          configService.get('LIVEKIT_API_SECRET')!,
-        ),
+      useFactory: (configService: ConfigService) => {
+        const url = configService.get<string>('LIVEKIT_URL')!;
+        const apiKey = configService.get<string>('LIVEKIT_API_KEY')!;
+        const apiSecret = configService.get<string>('LIVEKIT_API_SECRET')!;
+        return new RoomServiceClient(url, apiKey, apiSecret);
+      },
       inject: [ConfigService],
     },
   ],

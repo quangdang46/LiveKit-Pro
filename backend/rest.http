@@ -1,8 +1,3 @@
-### Create Room
-POST http://localhost:3000/livekit/create-room
-Content-Type: application/json
 
-{
-  "callSid": "123",
-  "roomName": "test"
-}
+### Get Token
+GET http://localhost:3000/livekit/token?roomName=quickstart-room&userName=quickstart-user
