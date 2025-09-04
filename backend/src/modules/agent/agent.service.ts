@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, RawBodyRequest } from '@nestjs/common';
+import type { Request } from 'express';
 
 import {
   AccessToken,
@@ -6,6 +7,8 @@ import {
   Room,
   RoomServiceClient,
   VideoGrant,
+  WebhookReceiver,
+  WebhookEvent,
 } from 'livekit-server-sdk';
 import { ConfigService } from '@nestjs/config';
 
@@ -15,6 +18,7 @@ export class AgentService {
     private readonly configService: ConfigService,
     private readonly roomServiceClient: RoomServiceClient,
     private readonly agentDispatchClient: AgentDispatchClient,
+    private readonly webhookReceiver: WebhookReceiver,
   ) {}
 
   async createAccessToken(room: string, participantName: string) {
@@ -37,36 +41,81 @@ export class AgentService {
     return token;
   }
 
-  async createRoom(roomName: string): Promise<Room> {
-    try {
-      const room = await this.roomServiceClient.createRoom({
-        name: roomName,
-        emptyTimeout: 300,
-        maxParticipants: 10,
-      });
+  async createSession(userName: string): Promise<{
+    roomName: string;
+    token: string;
+    wsUrl: string;
+  }> {
+    const roomName = `room-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+    const token = await this.createAccessToken(roomName, userName);
 
-      console.log(`Room created: ${roomName}`);
-      return room;
-    } catch (error) {
-      console.error(`Failed to create room: ${error.message}`);
-      throw error;
-    }
+    return {
+      roomName,
+      token,
+      wsUrl:
+        this.configService.get<string>('LIVEKIT_URL') || 'ws://localhost:7880',
+    };
   }
 
-  async dispatchAgent(roomName: string, agentName: string) {
+  async dispatchAgentOnParticipantJoin(
+    roomName: string,
+    participantIdentity: string,
+  ): Promise<string | null> {
+    if (participantIdentity.includes('agent')) {
+      return null;
+    }
+
     try {
       const dispatch = await this.agentDispatchClient.createDispatch(
         roomName,
-        agentName,
+
+        // agent name from ai-agent-001....005
+        `ai-agent-00${Math.floor(Math.random() * 5) + 1}`,
         {
-          metadata: '{"user_id": "12345"}',
+          metadata: JSON.stringify({
+            roomName,
+            triggerParticipant: participantIdentity,
+            dispatchTime: new Date().toISOString(),
+            type: 'participant-triggered',
+          }),
         },
       );
-      console.log('created dispatch', dispatch);
 
-      return dispatch;
+      console.log(
+        `Agent dispatched to room ${roomName} due to ${participantIdentity} joining,with dispatch ${JSON.stringify(dispatch)}`,
+      );
+      return 'ai-agent';
     } catch (error) {
-      throw error;
+      console.error('Agent dispatch failed:', error.message);
+      return null;
     }
+  }
+
+  async webhook(req: RawBodyRequest<Request>, authHeader: string) {
+    const rawBuffer = Buffer.isBuffer(req.body)
+      ? (req.body as Buffer)
+      : Buffer.from((req as any).rawBody ?? JSON.stringify(req.body ?? {}));
+
+    const event = (await this.webhookReceiver.receive(
+      rawBuffer.toString('utf8'),
+      authHeader,
+    )) as WebhookEvent;
+    console.log('event===>', event);
+    if (
+      event.event === 'participant_joined' &&
+      !event.participant?.identity.includes('agent')
+    ) {
+      console.log(
+        'dispatching agent for participant',
+        event.participant?.identity,
+      );
+
+      await this.dispatchAgentOnParticipantJoin(
+        event.room?.name!,
+        event.participant?.identity!,
+      );
+    }
+
+    return { success: true };
   }
 }
