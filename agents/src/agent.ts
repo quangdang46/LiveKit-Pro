@@ -26,7 +26,7 @@ async function handleJobRequest(job: JobRequest): Promise<void> {
       console.log(`Publisher: ${job.publisher.identity}`);
     }
 
-    await job.reject();
+    await job.accept();
   } catch (error) {
     await job.reject();
     console.error("Error handling job request:", error);
@@ -39,7 +39,7 @@ const computeLoad = (worker: Worker): Promise<number> => {
 };
 
 const opts = new WorkerOptions({
-  agent: "./src/agent-process.ts",
+  agent: "./dist/agent-process.js",
   requestFunc: handleJobRequest,
   loadFunc: computeLoad,
   loadThreshold: 0.9,
