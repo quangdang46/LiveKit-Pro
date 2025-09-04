@@ -1,3 +1,13 @@
 
 ### Get Token
 GET http://localhost:3000/livekit/token?roomName=quickstart-room&userName=quickstart-user
+
+### Dispatch Agent
+POST http://localhost:3000/livekit/dispatch
+Content-Type: application/json
+
+{
+  "roomName": "quickstart-room",
+  "agentName": "livekit-ai-agent"
+}
+

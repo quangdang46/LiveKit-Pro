@@ -8,7 +8,7 @@ import {
 } from "@livekit/agents";
 import { JobType } from "@livekit/protocol";
 
-initializeLogger({ pretty: true, level: "info" });
+initializeLogger({ pretty: true, level: "warn" });
 
 async function handleJobRequest(job: JobRequest): Promise<void> {
   console.log("Received job assignment:", {
@@ -25,7 +25,10 @@ async function handleJobRequest(job: JobRequest): Promise<void> {
     if (job.publisher) {
       console.log(`Publisher: ${job.publisher.identity}`);
     }
+
+    await job.reject();
   } catch (error) {
+    await job.reject();
     console.error("Error handling job request:", error);
     throw error;
   }
@@ -36,7 +39,7 @@ const computeLoad = (worker: Worker): Promise<number> => {
 };
 
 const opts = new WorkerOptions({
-  agent: "./dist/agent-process.js",
+  agent: "./src/agent-process.ts",
   requestFunc: handleJobRequest,
   loadFunc: computeLoad,
   loadThreshold: 0.9,
@@ -50,7 +53,6 @@ const opts = new WorkerOptions({
 });
 
 const worker = new Worker(opts);
-console.log("Worker created", worker);
 
 worker.event.on("error", (error: Error) => {
   console.error("Worker error:", error);

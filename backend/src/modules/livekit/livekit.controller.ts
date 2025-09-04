@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { LivekitService } from './livekit.service';
 import { AgentService } from '../agent/agent.service';
 
@@ -21,5 +21,15 @@ export class LivekitController {
   ) {
     const token = await this.agent.createAccessToken(room, userName);
     return { token };
+  }
+
+  @Post('dispatch')
+  async dispatch(@Body() body: { roomName: string; agentName: string }) {
+    console.log('body', body);
+    const dispatch = await this.agent.dispatchAgent(
+      body.roomName,
+      body.agentName,
+    );
+    return { dispatch };
   }
 }
