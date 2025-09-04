@@ -44,7 +44,7 @@ const opts = new WorkerOptions({
   loadFunc: computeLoad,
   loadThreshold: 0.9,
   permissions: new WorkerPermissions(),
-  workerType: JobType.JT_ROOM,
+  workerType: JobType.JT_PARTICIPANT,
   agentName: "livekit-ai-agent",
 
   wsURL: process.env.LIVEKIT_URL ?? "http://localhost:7880",
