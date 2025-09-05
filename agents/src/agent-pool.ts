@@ -14,7 +14,7 @@ type AgentInstance = {
   id: string;
   worker: Worker;
   isAvailable: boolean;
-  currentRooms: string;
+  currentRoom?: string;
   lastJobTime: Date;
 };
 
@@ -28,22 +28,21 @@ export class AgentPool {
     this.agentPrefix = agentPrefix;
   }
 
-  private computeLoad(instanceId: string): Promise<number> {
+  private computeLoad(): Promise<number> {
     return Promise.resolve(0.5);
   }
 
-  private createAgentInstance(instanceId: string): AgentInstance {
-    const agentName = `${this.agentPrefix}-${instanceId.padStart(3, "0")}`;
+  private createAgentInstance(instanceSuffix: string): AgentInstance {
+    const agentId = `${this.agentPrefix}-${instanceSuffix}`;
 
-    console.log(`Creating agent instance: ${agentName}`);
     const opts = new WorkerOptions({
       agent: "./dist/agent-process.js",
-      requestFunc: (job: JobRequest) => this.handleJobRequest(job, instanceId),
-      loadFunc: () => this.computeLoad(instanceId),
+      requestFunc: (job: JobRequest) => this.handleJobRequest(job, agentId),
+      loadFunc: () => this.computeLoad(),
       loadThreshold: 0.8,
       permissions: new WorkerPermissions(),
       workerType: JobType.JT_PARTICIPANT,
-      agentName: agentName,
+      agentName: agentId,
 
       wsURL: process.env.LIVEKIT_URL ?? "ws://localhost:7880",
       apiKey: process.env.LIVEKIT_API_KEY ?? "devkey",
@@ -51,144 +50,129 @@ export class AgentPool {
     });
 
     const worker = new Worker(opts);
+    this.setupWorkerEvents(worker, agentId);
 
-    this.setupWorkerEvents(worker, instanceId);
-
-    const agentInstance: AgentInstance = {
-      id: instanceId,
+    return {
+      id: agentId,
       worker,
       isAvailable: true,
-      currentRooms: "",
+      currentRoom: undefined,
       lastJobTime: new Date(),
     };
-
-    return agentInstance;
   }
 
-  private setupWorkerEvents(worker: Worker, instanceId: string): void {
+  private setupWorkerEvents(worker: Worker, agentId: string): void {
     worker.event.on("connected", () => {
-      const agent = this.agents.get(instanceId);
+      const agent = this.agents.get(agentId);
       if (agent) {
         agent.isAvailable = true;
       }
     });
 
     worker.event.on("disconnected", () => {
-      console.log(`Agent ${instanceId} disconnected`);
-      const agent = this.agents.get(instanceId);
+      console.log(`Agent ${agentId} disconnected`);
+      const agent = this.agents.get(agentId);
       if (agent) {
-        agent.isAvailable = false;
-        agent.currentRooms = "";
+        agent.isAvailable = true;
+        agent.currentRoom = undefined;
       }
     });
 
     worker.event.on("error", (error: Error) => {
-      console.error(`Agent ${instanceId} error:`, error);
-      setTimeout(() => this.restartAgent(instanceId), 5000);
+      console.error(`Agent ${agentId} error:`, error);
+      setTimeout(() => this.restartAgent(agentId), 5000);
     });
   }
 
-  private async restartAgent(instanceId: string): Promise<void> {
-    const oldAgent = this.agents.get(instanceId);
+  private async restartAgent(agentId: string): Promise<void> {
+    const oldAgent = this.agents.get(agentId);
     if (oldAgent) {
       oldAgent.worker.close();
-      this.agents.delete(instanceId);
+      this.agents.delete(agentId);
     }
 
-    const newAgent = this.createAgentInstance(instanceId);
-    this.agents.set(instanceId, newAgent);
+    const newAgent = this.createAgentInstance(
+      agentId.replace(`${this.agentPrefix}-`, "")
+    );
+    this.agents.set(newAgent.id, newAgent);
 
     try {
       await newAgent.worker.run();
-      console.log(`Agent ${instanceId} restarted successfully`);
     } catch (error) {
-      console.error(`Failed to restart agent ${instanceId}:`, error);
+      console.error(`Failed to restart agent ${agentId}:`, error);
     }
   }
 
   private async loadBalance(): Promise<AgentInstance> {
     let availableAgent = Array.from(this.agents.values()).find(
-      (a) => a.isAvailable
+      (a) => a.isAvailable && !a.currentRoom
     );
-
     if (!availableAgent) {
-      console.log("No available agents, creating new one");
-      const newInstanceId = `new-${Date.now()}`;
-      const newAgent = this.createAgentInstance(newInstanceId);
-      this.agents.set(newInstanceId, newAgent);
+      const newSuffix = `new-${Date.now()}`;
+      const newAgent = this.createAgentInstance(newSuffix);
+      this.agents.set(newAgent.id, newAgent);
 
       try {
         await newAgent.worker.run();
-        console.log(`Spawned and connected new agent: ${newInstanceId}`);
       } catch (error) {
-        console.error(`Failed to start agent ${newInstanceId}:`, error);
+        console.error(`Failed to start agent ${newAgent.id}:`, error);
         throw error;
       }
 
       availableAgent = newAgent;
     }
 
-    console.log(
-      `===========>Agent ${availableAgent.id} is available, accepting job`
-    );
     return availableAgent;
   }
 
   private async handleJobRequest(
     job: JobRequest,
-    instanceId: string
+    agentId: string
   ): Promise<void> {
-    let agent = this.agents.get(instanceId);
-    if (!agent) return;
+    let agent = this.agents.get(agentId);
 
-    console.log(`Agent ${instanceId} received job. room=${job.room?.name}`);
-
-    if (!agent.isAvailable) {
-      const availableAgent = await this.loadBalance();
-      agent = availableAgent;
+    if (!agent || !agent.isAvailable || agent.currentRoom) {
+      agent = await this.loadBalance();
+      agentId = agent.id;
     }
 
     try {
-      console.log(
-        `Agent ${instanceId} accepting job for room: ${job.room?.name}`
-      );
+      console.log(`Agent ${agentId} accepting job for room: ${job.room?.name}`);
 
       agent.isAvailable = false;
       agent.lastJobTime = new Date();
       if (job.room?.name) {
-        agent.currentRooms = job.room.name;
+        agent.currentRoom = job.room.name;
       }
 
       await job.accept();
 
       console.log(
-        `Agent ${instanceId} successfully joined room: ${job.room?.name}`
+        `Agent ${agentId} successfully joined room: ${job.room?.name}`
       );
     } catch (error) {
       console.error(
-        `Agent ${instanceId} failed to accept job for room ${job.room?.name}.`,
+        `Agent ${agentId} failed to accept job for room ${job.room?.name}.`,
         error
       );
       await job.reject();
 
       agent.isAvailable = true;
-      agent.currentRooms = "";
+      agent.currentRoom = undefined;
     }
   }
 
   async initialize(): Promise<void> {
     for (let i = 1; i <= this.maxAgents; i++) {
-      const instanceId = i.toString().padStart(3, "0");
-
-      const agent = this.createAgentInstance(instanceId);
-      this.agents.set(instanceId, agent);
+      const suffix = i.toString().padStart(3, "0");
+      const agent = this.createAgentInstance(suffix);
+      this.agents.set(agent.id, agent);
 
       try {
         agent.worker.run();
-
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
-        console.error(`Failed to start agent ${instanceId}:`, error);
+        console.error(`Failed to start agent ${agent.id}:`, error);
       }
     }
   }
@@ -197,7 +181,6 @@ export class AgentPool {
     for (const agent of this.agents.values()) {
       agent.worker.close();
     }
-
     this.agents.clear();
   }
 }
