@@ -1,54 +1,10 @@
 import { Node } from "@/types/node";
 
-export const mockData: Node = {
-  id: "1",
-  name: "Script",
-  type: "ROOT",
-  content: "Hello",
-  status: "ACTIVE",
-  children: [
-    {
-      id: "2",
-      name: "Main Branch",
-      type: "BRANCH",
-      content: "content",
-      status: "ACTIVE",
-      children: [
-        {
-          id: "3",
-          name: "Child 1",
-          type: "BRANCH",
-          content: "content",
-          status: "ACTIVE",
-          children: [],
-        },
-        {
-          id: "4",
-          name: "Child 2",
-          content: "content",
-          type: "BRANCH",
-          status: "ACTIVE",
-          children: [
-            {
-              id: "5",
-              name: "Child 3",
-              content: "content",
-              type: "BRANCH",
-              status: "ACTIVE",
-              children: [
-                {
-                  id: "6",
-                  name: "Child 4",
-                  type: "BRANCH",
-                  content: "content",
-                  status: "ACTIVE",
-                  children: [],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+export const mockData: Node[] = [
+  { id: "1", number: 1, text: "Script", parentId: "" },
+  { id: "2", number: 2, text: "Main Branch", parentId: "1" },
+  { id: "3", number: 3, text: "Child 1", parentId: "2" },
+  { id: "4", number: 4, text: "Child 2", parentId: "2" },
+  { id: "5", number: 5, text: "Child 3", parentId: "4" },
+  { id: "6", number: 6, text: "Child 4", parentId: "5" },
+];

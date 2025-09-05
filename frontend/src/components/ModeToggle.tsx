@@ -1,16 +1,17 @@
 import { Code, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export type ModeToggle = "form" | "json";
 
-interface ModeToggleProps {
+type ModeToggleProps = {
   mode: ModeToggle;
   onModeChange: (mode: ModeToggle) => void;
-}
+};
 
 export function ModeToggle({ mode, onModeChange }: ModeToggleProps) {
   return (
     <div className="flex gap-2">
-      <button
+      <Button
         type="button"
         onClick={() => onModeChange("form")}
         className={`px-3 py-1 rounded text-xs flex items-center gap-1 ${
@@ -20,8 +21,8 @@ export function ModeToggle({ mode, onModeChange }: ModeToggleProps) {
         }`}
       >
         <FileText size={14} /> Form
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
         onClick={() => onModeChange("json")}
         className={`px-3 py-1 rounded text-xs flex items-center gap-1 ${
@@ -31,7 +32,7 @@ export function ModeToggle({ mode, onModeChange }: ModeToggleProps) {
         }`}
       >
         <Code size={14} /> JSON
-      </button>
+      </Button>
     </div>
   );
 }
