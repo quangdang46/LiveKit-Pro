@@ -10,7 +10,7 @@ type TreeNodeProps = {
   level?: number;
   getChildren: (parentId: string) => Node[];
   onUpdate: (updatedNode: Node) => void;
-  onAddChild: (parentNode: Node, newChild: Omit<Node, "parentId">) => void;
+  onAddChild: (parentNode: Node, newChild: Node) => void;
   onDelete: (nodeId: string) => void;
 };
 
@@ -41,11 +41,12 @@ export function TreeNodeItem({
   };
 
   const handleAddChild = (data: any) => {
-    const newChild = {
+    const newChild: Node = {
       id: crypto.randomUUID(),
-      number: Number(data.number),
-      text: data.text,
-    } as Omit<Node, "parentId">;
+      type: data.type,
+      data: data.data,
+      edges: [],
+    };
     onAddChild(node, newChild);
     setIsAddingChild(false);
     setAddChildMode("form");

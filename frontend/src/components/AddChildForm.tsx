@@ -24,12 +24,12 @@ export function AddChildForm({
   const form = useForm({
     resolver: zodResolver(AddChildFormSchema),
     defaultValues: {
-      number: 0,
-      text: "",
+      type: "SpeechNode",
+      data: { message: "" },
       jsonData: JSON.stringify(
         {
-          number: 0,
-          text: "",
+          type: "SpeechNode",
+          data: { message: "" },
         },
         null,
         2
@@ -47,7 +47,8 @@ export function AddChildForm({
         return;
       }
     }
-    onAdd(finalData);
+    const newNode = { type: finalData.type, data: finalData.data, edges: [] };
+    onAdd(newNode);
   };
 
   return (

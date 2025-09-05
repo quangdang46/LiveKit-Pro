@@ -23,6 +23,12 @@ export function NodeDisplay({
   onAddChild,
   onDelete,
 }: NodeDisplayProps) {
+  const isSpeech = (n: Node): n is Node & { data: { message: string } } =>
+    n.type === "SpeechNode";
+  const isDTMF = (
+    n: Node
+  ): n is Node & { data: { prompt: string; options: string[] } } =>
+    n.type === "DTMFNode";
   return (
     <div
       className={`node-display flex items-center gap-2 px-2 py-1 rounded${
@@ -41,8 +47,14 @@ export function NodeDisplay({
         </Button>
       )}
       <span>
-        <strong className="text-blue-700">#{node.number}</strong>
-        <span className="text-gray-700"> - {node.text}</span>
+        <strong className="text-blue-700">{node.type}</strong>
+        <span className="text-gray-700">
+          {isSpeech(node)
+            ? ` - ${node.data.message}`
+            : isDTMF(node)
+            ? ` - ${node.data.prompt} [${(node.data.options || []).join(", ")}]`
+            : ""}
+        </span>
       </span>
       <div className="ml-auto flex items-center gap-2">
         <Button

@@ -1,17 +1,45 @@
 import { z } from "zod";
 
+export const NodeTypeSchema = z.enum(["SpeechNode", "DTMFNode"]);
+export type NodeType = z.infer<typeof NodeTypeSchema>;
+
+export const EdgeSchema = z.object({
+  to: z.string().min(1, "Target node ID is required"),
+  condition: z
+    .object({
+      key: z.string().min(1, "Condition key is required"),
+    })
+    .nullable()
+    .optional(),
+});
+
+const SpeechNodeDataSchema = z.object({
+  message: z
+    .string()
+    .min(1, "Message is required")
+    .max(500, "Message too long"),
+});
+
+const DTMFNodeDataSchema = z.object({
+  prompt: z.string().min(1, "Prompt is required").max(200, "Prompt too long"),
+  options: z
+    .array(z.string().min(1, "Option cannot be empty"))
+    .min(1, "At least one option is required")
+    .max(10, "Too many options"),
+});
+
 export const NodeSchema = z.object({
-  id: z.string(),
-  number: z.number(),
-  text: z.string(),
-  parentId: z.string(),
+  id: z.string().min(1, "Node ID is required"),
+  type: NodeTypeSchema,
+  data: z.union([SpeechNodeDataSchema, DTMFNodeDataSchema]),
+  edges: z.array(EdgeSchema),
 });
 
 export type Node = z.infer<typeof NodeSchema>;
 
 export const EditNodeFormSchema = z.object({
-  number: z.coerce.number(),
-  text: z.string().min(1),
+  type: NodeTypeSchema,
+  data: z.any(),
   jsonData: z.string().optional(),
 });
 

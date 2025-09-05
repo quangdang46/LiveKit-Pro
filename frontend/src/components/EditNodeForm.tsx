@@ -25,12 +25,12 @@ export function EditNodeForm({
   const form = useForm({
     resolver: zodResolver(EditNodeFormSchema),
     defaultValues: {
-      number: node.number,
-      text: node.text,
+      type: node.type,
+      data: node.data,
       jsonData: JSON.stringify(
         {
-          number: node.number,
-          text: node.text,
+          type: node.type,
+          data: node.data,
         },
         null,
         2
@@ -47,21 +47,19 @@ export function EditNodeForm({
           return;
         }
         const parsedJson = JSON.parse(data.jsonData);
-        const { success, data: validatedData } =
-          EditNodeFormSchema.safeParse(parsedJson);
-        if (success) {
-          finalData = validatedData;
-        } else {
+        const result = EditNodeFormSchema.safeParse(parsedJson);
+        if (!result.success) {
           alert("Invalid JSON format");
           return;
         }
+        finalData = result.data;
       } catch (error) {
         alert("Invalid JSON format");
         return;
       }
     }
-    const { number, text } = finalData;
-    onSave({ number, text });
+    const { type, data: nodeData } = finalData;
+    onSave({ type, data: nodeData });
   };
 
   return (
