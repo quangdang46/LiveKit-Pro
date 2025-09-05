@@ -14,7 +14,7 @@ type AgentInstance = {
   id: string;
   worker: Worker;
   isAvailable: boolean;
-  currentRooms: Set<string>;
+  currentRooms: string;
   lastJobTime: Date;
 };
 
@@ -29,10 +29,7 @@ export class AgentPool {
   }
 
   private computeLoad(instanceId: string): Promise<number> {
-    const agent = this.agents.get(instanceId);
-    if (!agent) return Promise.resolve(1.0);
-    const load = agent.currentRooms.size / 2;
-    return Promise.resolve(Math.min(load, 1.0));
+    return Promise.resolve(0.5);
   }
 
   private createAgentInstance(instanceId: string): AgentInstance {
@@ -61,7 +58,7 @@ export class AgentPool {
       id: instanceId,
       worker,
       isAvailable: true,
-      currentRooms: new Set(),
+      currentRooms: "",
       lastJobTime: new Date(),
     };
 
@@ -81,6 +78,7 @@ export class AgentPool {
       const agent = this.agents.get(instanceId);
       if (agent) {
         agent.isAvailable = false;
+        agent.currentRooms = "";
       }
     });
 
@@ -108,21 +106,46 @@ export class AgentPool {
     }
   }
 
+  private async loadBalance(): Promise<AgentInstance> {
+    let availableAgent = Array.from(this.agents.values()).find(
+      (a) => a.isAvailable
+    );
+
+    if (!availableAgent) {
+      console.log("No available agents, creating new one");
+      const newInstanceId = `new-${Date.now()}`;
+      const newAgent = this.createAgentInstance(newInstanceId);
+      this.agents.set(newInstanceId, newAgent);
+
+      try {
+        await newAgent.worker.run();
+        console.log(`Spawned and connected new agent: ${newInstanceId}`);
+      } catch (error) {
+        console.error(`Failed to start agent ${newInstanceId}:`, error);
+        throw error;
+      }
+
+      availableAgent = newAgent;
+    }
+
+    console.log(
+      `===========>Agent ${availableAgent.id} is available, accepting job`
+    );
+    return availableAgent;
+  }
+
   private async handleJobRequest(
     job: JobRequest,
     instanceId: string
   ): Promise<void> {
-    const agent = this.agents.get(instanceId);
+    let agent = this.agents.get(instanceId);
     if (!agent) return;
 
     console.log(`Agent ${instanceId} received job. room=${job.room?.name}`);
 
-    if (!agent.isAvailable || agent.currentRooms.size >= 2) {
-      console.log(
-        `Agent ${instanceId} is busy (rooms=${agent.currentRooms.size}), rejecting job for room ${job.room?.name}`
-      );
-      await job.reject();
-      return;
+    if (!agent.isAvailable) {
+      const availableAgent = await this.loadBalance();
+      agent = availableAgent;
     }
 
     try {
@@ -133,7 +156,7 @@ export class AgentPool {
       agent.isAvailable = false;
       agent.lastJobTime = new Date();
       if (job.room?.name) {
-        agent.currentRooms.add(job.room.name);
+        agent.currentRooms = job.room.name;
       }
 
       await job.accept();
@@ -149,9 +172,7 @@ export class AgentPool {
       await job.reject();
 
       agent.isAvailable = true;
-      if (job.room?.name) {
-        agent.currentRooms.delete(job.room.name);
-      }
+      agent.currentRooms = "";
     }
   }
 
@@ -178,23 +199,5 @@ export class AgentPool {
     }
 
     this.agents.clear();
-  }
-
-  // Get pool status
-  getPoolStatus() {
-    const agents = Array.from(this.agents.values());
-
-    return {
-      totalAgents: agents.length,
-      availableAgents: agents.filter((a) => a.isAvailable).length,
-      busyAgents: agents.filter((a) => !a.isAvailable).length,
-      totalRooms: agents.reduce((sum, a) => sum + a.currentRooms.size, 0),
-      agents: agents.map((a) => ({
-        id: a.id,
-        available: a.isAvailable,
-        rooms: Array.from(a.currentRooms),
-        lastJob: a.lastJobTime,
-      })),
-    };
   }
 }

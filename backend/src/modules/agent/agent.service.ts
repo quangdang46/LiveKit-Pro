@@ -55,8 +55,8 @@ export class AgentService {
       const dispatch = await this.agentDispatchClient.createDispatch(
         roomName,
 
-        // agent name from ai-agent-001....005
-        `ai-agent-00${Math.floor(Math.random() * 5) + 1}`,
+        // agent name ai-agent-001....002
+        `ai-agent-00${Math.floor(Math.random() * 2) + 1}`,
         {
           metadata: JSON.stringify({
             roomName,
