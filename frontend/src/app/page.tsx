@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 
 export default function Page() {
   // TODO: get user input for room and name
-  const room = "quickstart-room";
+  const room = "quickstart-room"+Math.random().toString(36).substring(2, 15);
   const name = "quickstart-user";
   const [roomInstance] = useState(
     () =>

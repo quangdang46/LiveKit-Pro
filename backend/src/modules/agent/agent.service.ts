@@ -41,21 +41,7 @@ export class AgentService {
     return token;
   }
 
-  async createSession(userName: string): Promise<{
-    roomName: string;
-    token: string;
-    wsUrl: string;
-  }> {
-    const roomName = `room-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
-    const token = await this.createAccessToken(roomName, userName);
 
-    return {
-      roomName,
-      token,
-      wsUrl:
-        this.configService.get<string>('LIVEKIT_URL') || 'ws://localhost:7880',
-    };
-  }
 
   async dispatchAgentOnParticipantJoin(
     roomName: string,

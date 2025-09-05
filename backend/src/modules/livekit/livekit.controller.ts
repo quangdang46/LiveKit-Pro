@@ -31,31 +31,6 @@ export class LivekitController {
     return { token };
   }
 
-  @Post('session')
-  async createSession(@Body() body: { userName: string }) {
-    try {
-      if (!body.userName?.trim()) {
-        return {
-          success: false,
-          error: 'userName is required and cannot be empty',
-        };
-      }
-
-      const session = await this.agent.createSession(body.userName);
-
-      return {
-        success: true,
-        ...session,
-      };
-    } catch (error) {
-      console.error('Session creation failed:', error);
-      return {
-        success: false,
-        error: error.message || 'Failed to create session',
-      };
-    }
-  }
-
   @Post('webhook')
   async handleWebhook(
     @Req() req: any,
