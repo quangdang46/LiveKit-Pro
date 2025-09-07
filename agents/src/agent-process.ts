@@ -1,6 +1,6 @@
 import { defineAgent, JobContext } from "@livekit/agents";
 
-module.exports = defineAgent({
+export default defineAgent({
   entry: async (ctx: JobContext) => {
     console.log("Agent process started with metadata:", ctx.job.metadata);
 

@@ -2,10 +2,10 @@
   "name": "agents",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "npm run build && node dist/index.js",
+    "dev": "npm run build && tsx src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -15,7 +15,8 @@
   "dependencies": {
     "@livekit/agents": "^1.0.2",
     "dotenv": "^17.2.2",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "tsx": "^4.20.5"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
