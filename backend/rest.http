@@ -10,3 +10,99 @@ Content-Type: application/json
   "userName": "quickstart-user"
 }
 
+
+### Create Script
+POST http://localhost:3000/script
+Content-Type: application/json
+
+{
+  "name": "Test Script",
+  "description": "Test Script Description",
+  "scriptData":[
+    {
+      "id": "root",
+      "type": "SpeechNode",
+      "data": {
+        "message": "Welcome to the IVR"
+      },
+      "edges": [
+        {
+          "to": "menu"
+        }
+      ]
+    },
+    {
+      "id": "menu",
+      "type": "DTMFNode",
+      "data": {
+        "prompt": "Press 1 for Sales, 2 for Support",
+        "options": [
+          "1",
+          "2"
+        ]
+      },
+      "edges": [
+        {
+          "to": "sales",
+          "condition": {
+            "key": "1"
+          }
+        },
+        {
+          "to": "support",
+          "condition": {
+            "key": "2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sales",
+      "type": "SpeechNode",
+      "data": {
+        "message": "Connecting you to Sales."
+      },
+      "edges": []
+    },
+    {
+      "id": "support",
+      "type": "SpeechNode",
+      "data": {
+        "message": "Connecting you to Support."
+      },
+      "edges": []
+    }
+  ]
+}
+
+### Get Scripts
+GET http://localhost:3000/script
+
+### Get Script
+GET http://localhost:3000/script/1
+
+### Validate Script
+POST http://localhost:3000/script/1/validate
+
+
+### Update Script
+PATCH http://localhost:3000/script/1
+Content-Type: application/json
+
+{
+  "name": "Updated Test Script",
+  "description": "Updated Test Script Description",
+  "scriptData": [
+    {
+      "id": "root",
+      "type": "SpeechNode",
+      "data": {
+        "message": "Welcome to the IVR"
+      },
+      "edges": []
+    }
+  ]
+}
+
+### Delete Script
+DELETE http://localhost:3000/script/1

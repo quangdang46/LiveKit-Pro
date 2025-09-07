@@ -1,0 +1,55 @@
+[
+  {
+    "id": "root",
+    "type": "SpeechNode",
+    "data": {
+      "message": "Welcome to the IVR"
+    },
+    "edges": [
+      {
+        "to": "menu"
+      }
+    ]
+  },
+  {
+    "id": "menu",
+    "type": "DTMFNode",
+    "data": {
+      "prompt": "Press 1 for Sales, 2 for Support",
+      "options": [
+        "1",
+        "2"
+      ]
+    },
+    "edges": [
+      {
+        "to": "sales",
+        "condition": {
+          "key": "1"
+        }
+      },
+      {
+        "to": "support",
+        "condition": {
+          "key": "2"
+        }
+      }
+    ]
+  },
+  {
+    "id": "sales",
+    "type": "SpeechNode",
+    "data": {
+      "message": "Connecting you to Sales."
+    },
+    "edges": []
+  },
+  {
+    "id": "support",
+    "type": "SpeechNode",
+    "data": {
+      "message": "Connecting you to Support."
+    },
+    "edges": []
+  }
+]
