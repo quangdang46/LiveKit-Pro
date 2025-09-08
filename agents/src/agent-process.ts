@@ -28,7 +28,7 @@ export default defineAgent({
         ctx.room?.localParticipant?.publishData(
           new TextEncoder().encode(
             // JSON.stringify({ type: "ivr", node: nextNode })
-            JSON.stringify({ type: "ivr", node: "nextNode" })
+            JSON.stringify({ type: "ivr", node: "nextNode", digit: msg.digit })
           ),
           { reliable: true }
         );
