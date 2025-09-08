@@ -10,6 +10,8 @@ import {
 import { ScriptService } from 'src/modules/script/script.service';
 import { CreateScriptDto } from 'src/modules/script/dto/create-script.dto';
 import { UpdateScriptDto } from 'src/modules/script/dto/update-script.dto';
+import { ValidateScriptDto } from 'src/modules/script/dto/validate-script.dto';
+import type { ScriptData } from './schema/script.entity';
 
 @Controller('script')
 export class ScriptController {
@@ -52,9 +54,8 @@ export class ScriptController {
     return this.service.remove(id);
   }
 
-  @Post(':id/validate')
-  async validateScript(@Param('id') id: string) {
-    const script = await this.service.findOne(id);
-    return this.service.validateScript(script.scriptData);
+  @Post('validate')
+  async validateScript(@Body() validateDto: ValidateScriptDto) {
+    return this.service.validateScript(validateDto.scriptData);
   }
 }

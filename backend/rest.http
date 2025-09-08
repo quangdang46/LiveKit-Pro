@@ -106,3 +106,21 @@ Content-Type: application/json
 
 ### Delete Script
 DELETE http://localhost:3000/script/1
+
+
+### Validate Script
+POST http://localhost:3000/script/validate
+Content-Type: application/json
+
+{
+  "scriptData": [
+    {
+      "id": "root",
+      "type": "SpeechNode",
+      "data": {
+        "message": "Welcome to the IVR"
+      },
+      "edges": []
+    }
+  ]
+}

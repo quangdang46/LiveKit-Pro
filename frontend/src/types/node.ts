@@ -46,3 +46,13 @@ export const EditNodeFormSchema = z.object({
 export type EditNodeFormData = z.infer<typeof EditNodeFormSchema>;
 
 export const AddChildFormSchema = EditNodeFormSchema;
+
+export const ScriptSchema = z.object({
+  name: z.string().min(1, "Script name is required"),
+  description: z.string().min(1, "Description is required"),
+  scriptData: z.array(NodeSchema),
+});
+
+export type Script = z.infer<typeof ScriptSchema>;
+
+export type ScriptResponse = Script & { id: string };
