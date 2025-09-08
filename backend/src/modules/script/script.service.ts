@@ -1,18 +1,23 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from './schema/script.entity';
 import { CreateScriptDto } from 'src/modules/script/dto/create-script.dto';
 import { desc, eq } from 'drizzle-orm';
 import { UpdateScriptDto } from 'src/modules/script/dto/update-script.dto';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 @Injectable()
 export class ScriptService {
   constructor(
     @Inject('SCRIPT_TOKEN')
-    private readonly script: NodePgDatabase<typeof schema>,
+    private readonly script: PostgresJsDatabase<typeof schema>,
   ) {}
 
   async create(createDto: CreateScriptDto) {
+    const validation = this.validateScript(createDto.scriptData);
+    if (!validation.valid) {
+      throw new Error(`Invalid script data: ${validation.error}`);
+    }
+
     const [newScript] = await this.script
       .insert(schema.Scripts)
       .values({
@@ -39,7 +44,7 @@ export class ScriptService {
       .where(eq(schema.Scripts.id, id));
 
     if (!script) {
-      throw new NotFoundException(`IVR Script with ID ${id} not found`);
+      throw new NotFoundException(`Script with ID ${id} not found`);
     }
 
     return script;
@@ -56,7 +61,7 @@ export class ScriptService {
       .returning();
 
     if (!updatedScript) {
-      throw new NotFoundException(`IVR Script with ID ${id} not found`);
+      throw new NotFoundException(`Script with ID ${id} not found`);
     }
 
     return updatedScript;
@@ -69,7 +74,7 @@ export class ScriptService {
       .returning();
 
     if (!deletedScript) {
-      throw new NotFoundException(`IVR Script with ID ${id} not found`);
+      throw new NotFoundException(`Script with ID ${id} not found`);
     }
 
     return { message: 'Script deleted successfully' };

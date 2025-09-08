@@ -12,14 +12,14 @@ services:
   #     LIVEKIT_API_KEY: devkey
   #     LIVEKIT_API_SECRET: secret
 
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: livekitdb
-    ports:
-      - "5432:5432"
+  # postgres:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: livekitdb
+  #   ports:
+  #     - "5432:5432"
 
   backend:
     build:
@@ -27,7 +27,7 @@ services:
       dockerfile: app.Dockerfile
     ports:
       - "3000:3000"
-    depends_on:
-      - postgres
+    # depends_on:
+    #   - postgres
     env_file:
       - .env

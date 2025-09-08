@@ -8,10 +8,19 @@ import {
 } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
 
+export const SpeechNodeSchema = z.object({
+  message: z.string(),
+});
+
+export const DTMFNodeSchema = z.object({
+  prompt: z.string(),
+  options: z.array(z.string()),
+});
+
 export const NodeSchema = z.object({
   id: z.string(),
   type: z.enum(['SpeechNode', 'DTMFNode']),
-  data: z.record(z.any()),
+  data: z.union([SpeechNodeSchema, DTMFNodeSchema]),
   edges: z
     .array(
       z.object({

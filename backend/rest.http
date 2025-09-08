@@ -79,14 +79,14 @@ Content-Type: application/json
 GET http://localhost:3000/script
 
 ### Get Script
-GET http://localhost:3000/script/1
+GET http://localhost:3000/script/b57d4b54-c78e-43e8-af06-42430b80021a
 
 ### Validate Script
-POST http://localhost:3000/script/1/validate
+POST http://localhost:3000/script/b57d4b54-c78e-43e8-af06-42430b80021a/validate
 
 
 ### Update Script
-PATCH http://localhost:3000/script/1
+PATCH http://localhost:3000/script/b57d4b54-c78e-43e8-af06-42430b80021a
 Content-Type: application/json
 
 {

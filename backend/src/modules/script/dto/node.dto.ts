@@ -1,12 +1,11 @@
 import { IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
-import { NodeSchema } from 'src/modules/script/schema/script.entity';
 
 export class NodeDto {
   @IsString()
   id: string;
 
   @IsString()
-  @IsEnum(NodeSchema.shape.type)
+  @IsEnum(['SpeechNode', 'DTMFNode'])
   type: string;
 
   @IsOptional()
