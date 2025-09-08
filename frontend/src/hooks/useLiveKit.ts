@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Room } from "livekit-client";
+import { Participant, Room, RoomEvent } from "livekit-client";
 import { livekitApi } from "@/api";
 
 type UseLiveKitReturn = {
@@ -13,6 +13,7 @@ type UseLiveKitReturn = {
     scriptId: string
   ) => Promise<void>;
   disconnect: () => void;
+  sendDtmf: (digit: string) => Promise<void>;
 };
 
 export function useLiveKit(): UseLiveKitReturn {
@@ -66,6 +67,64 @@ export function useLiveKit(): UseLiveKitReturn {
     };
   }, [disconnect]);
 
+  const sendDtmf = useCallback(
+    async (digit: string) => {
+      if (!room) return;
+      const participant = room.localParticipant;
+
+      const dtmfCodes: Record<string, number> = {
+        "0": 0,
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "4": 4,
+        "5": 5,
+        "6": 6,
+        "7": 7,
+        "8": 8,
+        "9": 9,
+        "*": 10,
+        "#": 11,
+      };
+
+      const code = dtmfCodes[digit];
+      if (code === undefined) {
+        console.warn("Invalid DTMF digit", digit);
+        return;
+      }
+
+      try {
+        await participant.publishDtmf(code, digit);
+        console.log(`Sent DTMF: ${digit} (${code})`);
+      } catch (err) {
+        console.error("Failed to send DTMF", err);
+      }
+    },
+    [room]
+  );
+
+  useEffect(() => {
+    console.log("room", room);
+    if (!room) return;
+    console.log("have room", room);
+    const handler = (
+      dtmf: { code: number; digit: string },
+      participant?: Participant
+    ) => {
+      console.log(
+        "[Client] DTMF received:",
+        dtmf.digit,
+        `(${dtmf.code}) from ${participant?.identity}`
+      );
+    };
+
+    room.on(RoomEvent.SipDTMFReceived, handler);
+
+    return () => {
+      room.off(RoomEvent.SipDTMFReceived, handler);
+    };
+  }, [room]);
+
   return {
     room,
     isConnected,
@@ -73,5 +132,6 @@ export function useLiveKit(): UseLiveKitReturn {
     error,
     connect,
     disconnect,
+    sendDtmf,
   };
 }

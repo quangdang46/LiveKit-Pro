@@ -35,6 +35,7 @@ type ScriptContextType = {
 
   startTestCall: (scriptId: string) => Promise<void>;
   endTestCall: () => void;
+  handleButtonClick: (button: string) => void;
 };
 
 const ScriptContext = createContext<ScriptContextType | undefined>(undefined);
@@ -135,6 +136,10 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
     }
   };
 
+  const handleButtonClick = (button: string) => {
+    liveKit.sendDtmf(button);
+  };
+
   const endTestCall = () => {
     liveKit.disconnect();
   };
@@ -155,6 +160,7 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
     testCallRoom: liveKit.room,
     startTestCall,
     endTestCall,
+    handleButtonClick,
   };
 
   return (

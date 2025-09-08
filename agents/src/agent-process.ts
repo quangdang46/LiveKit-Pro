@@ -28,23 +28,7 @@ export default defineAgent({
       scriptId: metadata.scriptId,
     });
 
-
     await ctx.connect();
 
-    ctx.room.on("trackPublished", (track, participant) => {
-      console.log(
-        `New track published by ${participant.identity}: ${track.name}`
-      );
-    });
-
-    ctx.room.on("trackUnpublished", (track, participant) => {
-      console.log(
-        `Track unpublished by ${participant.identity}: ${track.name}`
-      );
-    });
-
-    ctx.room.on("participantConnected", (participant) => {
-      console.log(`${participant.identity} joined the room`);
-    });
   },
 });

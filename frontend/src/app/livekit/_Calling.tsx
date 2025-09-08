@@ -10,15 +10,15 @@ import Link from "next/link";
 export default function CallingPage() {
   const searchParams = useSearchParams();
   const scriptId = searchParams.get("scriptId");
-  const { startTestCall } = useScripts();
+  const { startTestCall, handleButtonClick } = useScripts();
   useEffect(() => {
     if (scriptId) {
       startTestCall(scriptId);
     }
   }, [scriptId]);
 
-  const handleButtonClick = (number: number) => {
-    const msg = `Button ${number} clicked at ${new Date().toLocaleTimeString()}`;
+  const onClick = (b: string) => {
+    handleButtonClick(b);
   };
 
   return (
@@ -29,16 +29,18 @@ export default function CallingPage() {
       <div className="flex h-screen">
         <div className="w-1/2 p-4 bg-gray-100">
           <div className="grid grid-cols-3 gap-4 w-fit">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((number) => (
-              <Button
-                variant="outline"
-                key={number}
-                onClick={() => handleButtonClick(number)}
-                className="w-16 h-16  bg-gray-600 text-white font-bold rounded transition-colors"
-              >
-                {number}
-              </Button>
-            ))}
+            {["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "#"].map(
+              (number) => (
+                <Button
+                  variant="outline"
+                  key={number}
+                  onClick={() => onClick(number)}
+                  className="w-16 h-16  bg-gray-600 text-white font-bold rounded transition-colors"
+                >
+                  {number}
+                </Button>
+              )
+            )}
           </div>
         </div>
 
