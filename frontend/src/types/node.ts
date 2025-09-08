@@ -9,7 +9,6 @@ export const EdgeSchema = z.object({
     .object({
       key: z.string().min(1, "Condition key is required"),
     })
-    .nullable()
     .optional(),
 });
 
@@ -40,7 +39,7 @@ export type Node = z.infer<typeof NodeSchema>;
 export const EditNodeFormSchema = z.object({
   type: NodeTypeSchema,
   data: z.any(),
-  jsonData: z.string().optional(),
+  scriptData: z.string().optional(),
 });
 
 export type EditNodeFormData = z.infer<typeof EditNodeFormSchema>;
@@ -56,3 +55,12 @@ export const ScriptSchema = z.object({
 export type Script = z.infer<typeof ScriptSchema>;
 
 export type ScriptResponse = Script & { id: string };
+
+export type ScriptsListResponse = ScriptResponse[];
+
+export type CreateScriptRequest = Script;
+export type UpdateScriptRequest = {
+  name?: string;
+  description?: string;
+  scriptData?: Node[];
+};

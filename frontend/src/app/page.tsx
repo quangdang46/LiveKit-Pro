@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { scriptApi } from "@/api";
-import { Script, ScriptResponse } from "@/types/node";
+import {
+  Script,
+  ScriptResponse,
+  ScriptsListResponse,
+  UpdateScriptRequest,
+  CreateScriptRequest,
+} from "@/types/node";
 import AddScriptModal from "@/components/AddScriptModal";
 import ScriptGrid from "@/components/ScriptGrid";
 
@@ -29,7 +35,7 @@ export default function Home() {
     fetchScripts();
   }, []);
 
-  const handleAddScript = async (newScript: Script) => {
+  const handleAddScript = async (newScript: CreateScriptRequest) => {
     try {
       const createdScript = await scriptApi.create(newScript);
       setScripts((prev) => [...prev, createdScript]);
@@ -49,16 +55,10 @@ export default function Home() {
 
   const handleUpdateScript = async (
     id: string,
-    updatedScript: Partial<ScriptResponse>
+    updatedScript: UpdateScriptRequest
   ) => {
     try {
-      const editData = {
-        type: "SpeechNode" as const,
-        data: {},
-        jsonData: JSON.stringify(updatedScript.scriptData || []),
-      };
-
-      const updated = await scriptApi.update(id, editData);
+      const updated = await scriptApi.update(id, updatedScript);
       setScripts((prev) =>
         prev.map((script) => (script.id === id ? updated : script))
       );

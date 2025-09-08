@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ScriptResponse } from "@/types/node";
+import { ScriptResponse, UpdateScriptRequest } from "@/types/node";
 import { cn } from "@/lib/utils";
 import ScriptComponent from "./ScriptComponent";
 
@@ -9,7 +9,7 @@ interface ScriptGridProps {
   scripts: ScriptResponse[];
   onDelete?: (id: string) => void;
   onTestCall?: (id: string) => void;
-  onUpdate?: (id: string, updatedScript: Partial<ScriptResponse>) => void;
+  onUpdate?: (id: string, updatedScript: UpdateScriptRequest) => void;
   className?: string;
 }
 

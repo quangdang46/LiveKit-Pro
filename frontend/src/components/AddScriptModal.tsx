@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Plus } from "lucide-react";
 import Editor from "@monaco-editor/react";
-import { Script, ScriptSchema } from "@/types/node";
+import { Script, ScriptSchema, CreateScriptRequest } from "@/types/node";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -26,7 +26,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 interface AddScriptModalProps {
-  onAddScript?: (script: Script) => void;
+  onAddScript?: (script: CreateScriptRequest) => void;
   className?: string;
 }
 
@@ -56,7 +56,7 @@ export default function AddScriptModal({
     },
   });
 
-  const handleSubmit = (data: Script) => {
+  const handleSubmit = (data: CreateScriptRequest) => {
     try {
       onAddScript?.(data);
       form.reset();
