@@ -14,12 +14,16 @@ import {
   UpdateScriptRequest,
   CreateScriptRequest,
 } from "@/types/node";
-
+import { Room } from "livekit-client";
+import { useLiveKit } from "@/hooks/useLiveKit";
 type ScriptContextType = {
   // State
   scripts: ScriptResponse[];
   loading: boolean;
   error: string | null;
+  activeTestCall: string | null;
+  isTestCallActive: boolean;
+  testCallRoom: Room | null;
 
   // Actions
   addScript: (newScript: CreateScriptRequest) => Promise<void>;
@@ -30,7 +34,9 @@ type ScriptContextType = {
   ) => Promise<void>;
   refreshScripts: () => Promise<void>;
   clearError: () => void;
-  testCall: (id: string) => Promise<void>;
+
+  startTestCall: (scriptId: string) => Promise<void>;
+  endTestCall: () => void;
 };
 
 const ScriptContext = createContext<ScriptContextType | undefined>(undefined);
@@ -43,6 +49,8 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
   const [scripts, setScripts] = useState<ScriptResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTestCall, setActiveTestCall] = useState<string | null>(null);
+  const liveKit = useLiveKit();
 
   const fetchScripts = async () => {
     try {
@@ -114,14 +122,29 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
     setError(null);
   };
 
-  const testCall = async (id: string) => {
+  const startTestCall = async (scriptId: string) => {
     try {
       setError(null);
-      await scriptApi.testCall(id);
+
+      const roomName = `test-call-${scriptId}-${Date.now()}`;
+      const userName = `test-user-${scriptId}-${Date.now()}`;
+
+      await liveKit.connect(roomName, userName);
+
+      await scriptApi.testCall(scriptId);
+
+      setActiveTestCall(scriptId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to test call");
+      setError(
+        err instanceof Error ? err.message : "Failed to start test call"
+      );
       throw err;
     }
+  };
+
+  const endTestCall = () => {
+    liveKit.disconnect();
+    setActiveTestCall(null);
   };
 
   useEffect(() => {
@@ -137,7 +160,11 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
     updateScript,
     refreshScripts,
     clearError,
-    testCall,
+    activeTestCall,
+    isTestCallActive: !!activeTestCall,
+    testCallRoom: liveKit.room,
+    startTestCall,
+    endTestCall,
   };
 
   return (

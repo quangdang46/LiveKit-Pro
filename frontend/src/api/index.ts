@@ -77,3 +77,15 @@ export const scriptApi = {
     })) as Promise<void>;
   },
 };
+
+export const livekitApi = {
+  getToken: async (
+    roomName: string,
+    userName: string
+  ): Promise<{ token: string }> => {
+    const response = (await fetchApi(
+      `/livekit/token?roomName=${roomName}&userName=${userName}`
+    )) as Promise<{ token: string }>;
+    return response;
+  },
+};

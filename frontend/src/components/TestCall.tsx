@@ -5,7 +5,7 @@ type TestCallProps = {
   id: string;
 };
 export default function TestCall({ id }: TestCallProps) {
-  const { testCall } = useScripts();
+  const { startTestCall, endTestCall } = useScripts();
 
   return (
     <div className="mt-4 pt-3 border-t border-gray-200">
@@ -13,7 +13,7 @@ export default function TestCall({ id }: TestCallProps) {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          testCall(id);
+          startTestCall(id);
         }}
         variant="outline"
         size="sm"
