@@ -14,6 +14,7 @@ type UseLiveKitReturn = {
   ) => Promise<void>;
   disconnect: () => void;
   sendDtmf: (digit: string) => Promise<void>;
+  log: string;
 };
 
 export function useLiveKit(): UseLiveKitReturn {
@@ -21,6 +22,7 @@ export function useLiveKit(): UseLiveKitReturn {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [log, setLog] = useState<string>("");
 
   const connect = useCallback(
     async (roomName: string, userName: string, scriptId: string) => {
@@ -70,32 +72,14 @@ export function useLiveKit(): UseLiveKitReturn {
   const sendDtmf = useCallback(
     async (digit: string) => {
       if (!room) return;
-      const participant = room.localParticipant;
-
-      const dtmfCodes: Record<string, number> = {
-        "0": 0,
-        "1": 1,
-        "2": 2,
-        "3": 3,
-        "4": 4,
-        "5": 5,
-        "6": 6,
-        "7": 7,
-        "8": 8,
-        "9": 9,
-        "*": 10,
-        "#": 11,
-      };
-
-      const code = dtmfCodes[digit];
-      if (code === undefined) {
-        console.warn("Invalid DTMF digit", digit);
-        return;
-      }
+      const msg = { type: "dtmf", digit };
 
       try {
-        await participant.publishDtmf(code, digit);
-        console.log(`Sent DTMF: ${digit} (${code})`);
+        room.localParticipant.publishData(
+          new TextEncoder().encode(JSON.stringify(msg)),
+          { reliable: true }
+        );
+        console.log("Sent DTMF", msg);
       } catch (err) {
         console.error("Failed to send DTMF", err);
       }
@@ -104,25 +88,18 @@ export function useLiveKit(): UseLiveKitReturn {
   );
 
   useEffect(() => {
-    console.log("room", room);
     if (!room) return;
-    console.log("have room", room);
-    const handler = (
-      dtmf: { code: number; digit: string },
-      participant?: Participant
-    ) => {
-      console.log(
-        "[Client] DTMF received:",
-        dtmf.digit,
-        `(${dtmf.code}) from ${participant?.identity}`
+
+    room.on(RoomEvent.DataReceived, (payload, participant) => {
+      const msg = JSON.parse(new TextDecoder().decode(payload));
+      setLog(
+        (prev) =>
+          prev +
+          `Client received ${JSON.stringify(msg)} from ${
+            participant?.identity
+          }\n`
       );
-    };
-
-    room.on(RoomEvent.SipDTMFReceived, handler);
-
-    return () => {
-      room.off(RoomEvent.SipDTMFReceived, handler);
-    };
+    });
   }, [room]);
 
   return {
@@ -133,5 +110,6 @@ export function useLiveKit(): UseLiveKitReturn {
     connect,
     disconnect,
     sendDtmf,
+    log,
   };
 }

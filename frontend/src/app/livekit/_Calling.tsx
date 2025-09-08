@@ -10,7 +10,7 @@ import Link from "next/link";
 export default function CallingPage() {
   const searchParams = useSearchParams();
   const scriptId = searchParams.get("scriptId");
-  const { startTestCall, handleButtonClick } = useScripts();
+  const { startTestCall, handleButtonClick, testCallLog } = useScripts();
   useEffect(() => {
     if (scriptId) {
       startTestCall(scriptId);
@@ -46,7 +46,7 @@ export default function CallingPage() {
 
         <div className="w-1/2 p-4 bg-white border-l border-gray-200">
           <div className="h-full text-black p-4 rounded font-mono text-sm overflow-y-auto">
-            {scriptId}
+            {testCallLog}
           </div>
         </div>
       </div>
