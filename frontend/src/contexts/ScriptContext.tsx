@@ -21,8 +21,6 @@ type ScriptContextType = {
   scripts: ScriptResponse[];
   loading: boolean;
   error: string | null;
-  activeTestCall: string | null;
-  isTestCallActive: boolean;
   testCallRoom: Room | null;
 
   // Actions
@@ -49,7 +47,6 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
   const [scripts, setScripts] = useState<ScriptResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTestCall, setActiveTestCall] = useState<string | null>(null);
   const liveKit = useLiveKit();
 
   const fetchScripts = async () => {
@@ -129,11 +126,7 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
       const roomName = `test-call-${scriptId}-${Date.now()}`;
       const userName = `test-user-${scriptId}-${Date.now()}`;
 
-      await liveKit.connect(roomName, userName);
-
-      await scriptApi.testCall(scriptId);
-
-      setActiveTestCall(scriptId);
+      await liveKit.connect(roomName, userName, scriptId);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to start test call"
@@ -144,7 +137,6 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
 
   const endTestCall = () => {
     liveKit.disconnect();
-    setActiveTestCall(null);
   };
 
   useEffect(() => {
@@ -160,8 +152,6 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
     updateScript,
     refreshScripts,
     clearError,
-    activeTestCall,
-    isTestCallActive: !!activeTestCall,
     testCallRoom: liveKit.room,
     startTestCall,
     endTestCall,

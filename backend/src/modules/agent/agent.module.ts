@@ -6,6 +6,7 @@ import {
   WebhookReceiver,
 } from 'livekit-server-sdk';
 import { ConfigService } from '@nestjs/config';
+import { ScriptModule } from '../script/script.module';
 
 interface LiveKitConfig {
   apiKey: string;
@@ -71,6 +72,7 @@ const PROVIDERS: Provider[] = [
 ];
 
 @Module({
+  imports: [ScriptModule],
   providers: [...PROVIDERS],
   exports: [
     AgentService,

@@ -26,8 +26,9 @@ export class LivekitController {
   async getToken(
     @Query('roomName') room: string,
     @Query('userName') userName: string,
+    @Query('scriptId') scriptId: string,
   ) {
-    const token = await this.agent.createAccessToken(room, userName);
+    const token = await this.agent.createAccessToken(room, userName, scriptId);
     return { token };
   }
 

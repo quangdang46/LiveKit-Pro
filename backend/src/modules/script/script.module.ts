@@ -24,12 +24,10 @@ const PROVIDERS: Provider[] = [
   ScriptService,
 ];
 
-
-
-
 @Module({
   imports: [],
   providers: [...PROVIDERS],
   controllers: [ScriptController],
+  exports: [ScriptService],
 })
 export class ScriptModule {}

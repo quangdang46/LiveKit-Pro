@@ -11,6 +11,7 @@ import {
   WebhookEvent,
 } from 'livekit-server-sdk';
 import { ConfigService } from '@nestjs/config';
+import { ScriptService } from '../script/script.service';
 
 @Injectable()
 export class AgentService {
@@ -19,14 +20,22 @@ export class AgentService {
     private readonly roomServiceClient: RoomServiceClient,
     private readonly agentDispatchClient: AgentDispatchClient,
     private readonly webhookReceiver: WebhookReceiver,
+    private readonly scriptService: ScriptService,
   ) {}
 
-  async createAccessToken(room: string, participantName: string) {
+  async createAccessToken(
+    room: string,
+    participantName: string,
+    scriptId: string,
+  ) {
     const at = new AccessToken(
       this.configService.get<string>('LIVEKIT_API_KEY'),
       this.configService.get<string>('LIVEKIT_API_SECRET'),
       {
         identity: participantName,
+        metadata: JSON.stringify({
+          scriptId,
+        }),
       },
     );
     const videoGrant: VideoGrant = {
@@ -41,16 +50,14 @@ export class AgentService {
     return token;
   }
 
-
-
   async dispatchAgentOnParticipantJoin(
     roomName: string,
     participantIdentity: string,
+    scriptId: string,
   ): Promise<string | null> {
     if (participantIdentity.includes('agent')) {
       return null;
     }
-
     try {
       const dispatch = await this.agentDispatchClient.createDispatch(
         roomName,
@@ -62,7 +69,7 @@ export class AgentService {
             roomName,
             triggerParticipant: participantIdentity,
             dispatchTime: new Date().toISOString(),
-            type: 'participant-triggered',
+            scriptId,
           }),
         },
       );
@@ -91,15 +98,19 @@ export class AgentService {
       event.event === 'participant_joined' &&
       !event.participant?.identity.includes('agent')
     ) {
-      console.log(
-        'dispatching agent for participant',
-        event.participant?.identity,
-      );
-
-      await this.dispatchAgentOnParticipantJoin(
-        event.room?.name!,
-        event.participant?.identity!,
-      );
+      const metadata = event.participant?.metadata;
+      if (metadata) {
+        const parsed = JSON.parse(metadata);
+        console.log(
+          'Participant joined with scriptId:===========>',
+          parsed.scriptId,
+        );
+        await this.dispatchAgentOnParticipantJoin(
+          event.room?.name!,
+          event.participant?.identity!,
+          parsed.scriptId,
+        );
+      }
     }
 
     return { success: true };

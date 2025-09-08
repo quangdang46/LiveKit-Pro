@@ -11,7 +11,6 @@ import { ScriptService } from 'src/modules/script/script.service';
 import { CreateScriptDto } from 'src/modules/script/dto/create-script.dto';
 import { UpdateScriptDto } from 'src/modules/script/dto/update-script.dto';
 import { ValidateScriptDto } from 'src/modules/script/dto/validate-script.dto';
-import type { ScriptData } from './schema/script.entity';
 
 @Controller('script')
 export class ScriptController {
@@ -57,10 +56,5 @@ export class ScriptController {
   @Post('validate')
   async validateScript(@Body() validateDto: ValidateScriptDto) {
     return this.service.validateScript(validateDto.scriptData);
-  }
-
-  @Post(':id/test-call')
-  async testCall(@Param('id') id: string) {
-    return await this.service.testCall(id);
   }
 }

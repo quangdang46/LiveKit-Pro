@@ -7,7 +7,11 @@ type UseLiveKitReturn = {
   isConnected: boolean;
   isConnecting: boolean;
   error: string | null;
-  connect: (roomName: string, userName: string) => Promise<void>;
+  connect: (
+    roomName: string,
+    userName: string,
+    scriptId: string
+  ) => Promise<void>;
   disconnect: () => void;
 };
 
@@ -17,33 +21,36 @@ export function useLiveKit(): UseLiveKitReturn {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const connect = useCallback(async (roomName: string, userName: string) => {
-    try {
-      setIsConnecting(true);
-      setError(null);
+  const connect = useCallback(
+    async (roomName: string, userName: string, scriptId: string) => {
+      try {
+        setIsConnecting(true);
+        setError(null);
 
-      const roomInstance = new Room({
-        adaptiveStream: true,
-        dynacast: true,
-      });
+        const roomInstance = new Room({
+          adaptiveStream: true,
+          dynacast: true,
+        });
 
-      const resp = await livekitApi.getToken(roomName, userName);
+        const resp = await livekitApi.getToken(roomName, userName, scriptId);
 
-      if (resp.token) {
-        await roomInstance.connect(
-          process.env.NEXT_PUBLIC_LIVEKIT_URL!,
-          resp.token
-        );
-        setRoom(roomInstance);
-        setIsConnected(true);
+        if (resp.token) {
+          await roomInstance.connect(
+            process.env.NEXT_PUBLIC_LIVEKIT_URL!,
+            resp.token
+          );
+          setRoom(roomInstance);
+          setIsConnected(true);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to connect");
+        console.error(err);
+      } finally {
+        setIsConnecting(false);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to connect");
-      console.error(err);
-    } finally {
-      setIsConnecting(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   const disconnect = useCallback(() => {
     if (room) {
