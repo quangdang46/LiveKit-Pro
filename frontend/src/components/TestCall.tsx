@@ -1,11 +1,11 @@
 import { Phone } from "lucide-react";
 import { Button } from "./ui/button";
-import { useScripts } from "@/contexts/ScriptContext";
+import { useRouter } from "next/navigation";
 type TestCallProps = {
   id: string;
 };
 export default function TestCall({ id }: TestCallProps) {
-  const { startTestCall, endTestCall } = useScripts();
+  const router = useRouter();
 
   return (
     <div className="mt-4 pt-3 border-t border-gray-200">
@@ -13,7 +13,7 @@ export default function TestCall({ id }: TestCallProps) {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          startTestCall(id);
+          router.push(`/livekit?scriptId=${encodeURIComponent(id)}`);
         }}
         variant="outline"
         size="sm"
