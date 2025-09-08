@@ -1,16 +1,19 @@
 import { Phone } from "lucide-react";
 import { Button } from "./ui/button";
+import { useScripts } from "@/contexts/ScriptContext";
 type TestCallProps = {
-  onTestCall: () => void;
+  id: string;
 };
-export default function TestCall({ onTestCall }: TestCallProps) {
+export default function TestCall({ id }: TestCallProps) {
+  const { testCall } = useScripts();
+
   return (
     <div className="mt-4 pt-3 border-t border-gray-200">
       <Button
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          onTestCall();
+          testCall(id);
         }}
         variant="outline"
         size="sm"

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Plus } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { Script, ScriptSchema, CreateScriptRequest } from "@/types/node";
-import { cn } from "@/lib/utils";
+import { useScripts } from "@/contexts/ScriptContext";
 import {
   Dialog,
   DialogContent,
@@ -25,11 +25,6 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-interface AddScriptModalProps {
-  onAddScript?: (script: CreateScriptRequest) => void;
-  className?: string;
-}
-
 const defaultScriptData = [
   {
     id: "node-1",
@@ -41,11 +36,9 @@ const defaultScriptData = [
   },
 ];
 
-export default function AddScriptModal({
-  onAddScript,
-  className,
-}: AddScriptModalProps) {
+export default function AddScriptModal() {
   const [isOpen, setIsOpen] = useState(false);
+  const { addScript } = useScripts();
 
   const form = useForm<Script>({
     resolver: zodResolver(ScriptSchema),
@@ -56,9 +49,9 @@ export default function AddScriptModal({
     },
   });
 
-  const handleSubmit = (data: CreateScriptRequest) => {
+  const handleSubmit = async (data: CreateScriptRequest) => {
     try {
-      onAddScript?.(data);
+      await addScript(data);
       form.reset();
       setIsOpen(false);
     } catch (error) {
@@ -75,7 +68,7 @@ export default function AddScriptModal({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
-          className={cn("flex items-center gap-2", className)}
+          className="flex items-center gap-2"
           onClick={() => setIsOpen(true)}
         >
           <Plus className="w-4 h-4" />

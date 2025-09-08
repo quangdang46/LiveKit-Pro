@@ -169,3 +169,9 @@ Content-Type: application/json
     }
   ]
 }
+
+
+
+### Test Call
+POST http://localhost:3000/script/b57d4b54-c78e-43e8-af06-42430b80021a/test-call
+

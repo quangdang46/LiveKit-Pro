@@ -1,25 +1,11 @@
 "use client";
 
 import React from "react";
-import { ScriptResponse, UpdateScriptRequest } from "@/types/node";
-import { cn } from "@/lib/utils";
 import ScriptComponent from "./ScriptComponent";
+import { useScripts } from "@/contexts/ScriptContext";
 
-interface ScriptGridProps {
-  scripts: ScriptResponse[];
-  onDelete?: (id: string) => void;
-  onTestCall?: (id: string) => void;
-  onUpdate?: (id: string, updatedScript: UpdateScriptRequest) => void;
-  className?: string;
-}
-
-export default function ScriptGrid({
-  scripts,
-  onDelete,
-  onTestCall,
-  onUpdate,
-  className,
-}: ScriptGridProps) {
+export default function ScriptGrid() {
+  const { scripts, updateScript } = useScripts();
   if (scripts.length === 0) {
     return (
       <div className="text-center py-12">
@@ -34,20 +20,12 @@ export default function ScriptGrid({
   }
 
   return (
-    <div
-      className={cn(
-        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6",
-        className
-      )}
-    >
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
       {scripts.map((script) => (
         <ScriptComponent
           key={script.id}
           script={script}
-          onDelete={onDelete}
-          onTestCall={onTestCall}
-          onUpdate={onUpdate}
-          className="h-full flex flex-col"
+          onUpdate={updateScript}
         />
       ))}
     </div>

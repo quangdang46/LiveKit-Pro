@@ -58,4 +58,9 @@ export class ScriptController {
   async validateScript(@Body() validateDto: ValidateScriptDto) {
     return this.service.validateScript(validateDto.scriptData);
   }
+
+  @Post(':id/test-call')
+  async testCall(@Param('id') id: string) {
+    return await this.service.testCall(id);
+  }
 }

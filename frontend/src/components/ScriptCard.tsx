@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { EllipsisVertical, Trash2, Phone } from "lucide-react";
 import { ScriptResponse } from "@/types/node";
-import { cn } from "@/lib/utils";
+import { useScripts } from "@/contexts/ScriptContext";
 import {
   Popover,
   PopoverContent,
@@ -14,26 +14,14 @@ import TestCall from "./TestCall";
 
 type ScriptCardProps = {
   script: ScriptResponse;
-  onDelete?: (id: string) => void;
-  onTestCall?: (id: string) => void;
-  className?: string;
 };
 
-export default function ScriptCard({
-  script,
-  onDelete,
-  onTestCall,
-  className,
-}: ScriptCardProps) {
+export default function ScriptCard({ script }: ScriptCardProps) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const { deleteScript } = useScripts();
 
   return (
-    <div
-      className={cn(
-        "relative p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors",
-        className
-      )}
-    >
+    <div className="relative p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
       <div className="flex justify-between items-start">
         <div className="flex-1 min-w-0 mr-3">
           <div className="text-sm text-gray-500 mb-1">ID: {script.id}</div>
@@ -64,7 +52,7 @@ export default function ScriptCard({
                 e.preventDefault();
                 e.stopPropagation();
                 setIsPopoverOpen(false);
-                onDelete?.(script.id);
+                deleteScript(script.id);
               }}
               className="flex items-center gap-2 w-full px-2 py-1 text-sm rounded-sm"
               variant="ghost"
@@ -76,7 +64,7 @@ export default function ScriptCard({
         </Popover>
       </div>
 
-      <TestCall onTestCall={() => onTestCall?.(script.id)} />
+      <TestCall id={script.id} />
     </div>
   );
 }

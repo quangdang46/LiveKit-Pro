@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import ScriptEditor from "./ScriptEditor";
 import ScriptActions from "./ScriptActions";
+import { useScripts } from "@/contexts/ScriptContext";
 
 type ScriptDialogProps = {
   script: ScriptResponse;
@@ -27,6 +28,7 @@ export default function ScriptDialog({
   const [isEditing, setIsEditing] = useState(false);
   const [editedScript, setEditedScript] = useState(script);
   const [isSaving, setIsSaving] = useState(false);
+  const { updateScript } = useScripts();
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -45,8 +47,9 @@ export default function ScriptDialog({
         description: editedScript.description,
         scriptData: editedScript.scriptData,
       };
-      await onUpdate?.(script.id, updateData);
+      await (onUpdate || updateScript)(script.id, updateData);
       setIsEditing(false);
+      onOpenChange(false);
     } catch (error) {
       console.error("Failed to update script:", error);
     } finally {

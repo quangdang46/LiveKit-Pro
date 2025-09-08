@@ -102,4 +102,9 @@ export class ScriptService {
       };
     }
   }
+
+  async testCall(id: string) {
+    const script = await this.findOne(id);
+    return script;
+  }
 }

@@ -65,8 +65,15 @@ export const scriptApi = {
   validate: async (scriptData: Node[]): Promise<{ valid: boolean }> => {
     const response = (await fetchApi("/script/validate", {
       method: "POST",
-      body: JSON.stringify(scriptData),
+      body: JSON.stringify({ scriptData }),
     })) as Promise<{ valid: boolean }>;
     return response;
+  },
+
+  // Test call a script
+  testCall: async (id: string): Promise<void> => {
+    const response = (await fetchApi(`/script/${id}/test-call`, {
+      method: "POST",
+    })) as Promise<void>;
   },
 };
