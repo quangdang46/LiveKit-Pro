@@ -40,11 +40,6 @@ export class ScriptProcessor {
 
       if (result.success && result.nextNodeId) {
         this.context.currentNodeId = result.nextNodeId;
-
-        if (!result.shouldWait) {
-          const nextResult = await this.processCurrentNode();
-          return nextResult;
-        }
       }
 
       return result;
@@ -55,5 +50,4 @@ export class ScriptProcessor {
       };
     }
   }
-
 }

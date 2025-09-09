@@ -82,9 +82,6 @@ export type DTMFNode = z.infer<typeof DTMFNodeSchema>;
 export type Script = z.infer<typeof ScriptSchema>;
 export type Node = z.infer<typeof NodeSchema>;
 
-export const validateScript = (script: unknown) => {
-  return ScriptSchema.safeParse(script);
-};
 
 export type Metadata = {
   scriptId: string;

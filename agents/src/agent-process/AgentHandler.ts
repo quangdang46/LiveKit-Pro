@@ -19,9 +19,7 @@ class AgentHandler {
       `/script/${scriptId}`
     );
 
-    if (initialResult?.output) {
-      this.publishData(initialResult.output);
-    }
+    await this.drainAndPublish(initialResult);
 
     this.setupEventHandlers();
   }
@@ -57,7 +55,7 @@ class AgentHandler {
     const result = await this.liveKitProcess.handleInput(digit);
     console.log("Processing result:", result);
 
-    this.handleProcessingResult(result);
+    await this.drainAndPublish(result);
   }
 
   private handleProcessingResult(result: ProcessingResult | undefined): void {
@@ -66,15 +64,28 @@ class AgentHandler {
       return;
     }
 
-    if (result.success && result.output) {
+    if (result.output) {
       this.publishData(result.output);
-    } else if (!result.success) {
-      if (result.output) {
-        this.publishData(result.output);
-      } else if (result.error) {
-        console.log("Error:", result.error);
-        this.publishError(result.error);
+      return;
+    }
+
+    if (result.error) {
+      console.log("Error:", result.error);
+      this.publishError(result.error);
+    }
+  }
+
+  private async drainAndPublish(
+    result: ProcessingResult | undefined
+  ): Promise<void> {
+    while (result) {
+      this.handleProcessingResult(result);
+
+      if (!result.success || result.shouldWait) {
+        return;
       }
+
+      result = await this.liveKitProcess.handleInput(undefined as any);
     }
   }
 
