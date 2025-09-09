@@ -35,7 +35,7 @@ export class AgentPool {
     const agentId = `${this.agentPrefix}-${instanceSuffix}`;
 
     const opts = new WorkerOptions({
-      agent: "./dist/agent-process.js",
+      agent: "./dist/agent-process/agent-process.js",
       requestFunc: (job: JobRequest) => this.handleJobRequest(job, agentId),
       loadFunc: () => this.computeLoad(),
       loadThreshold: 0.8,

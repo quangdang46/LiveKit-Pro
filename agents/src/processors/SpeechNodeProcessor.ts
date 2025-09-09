@@ -1,6 +1,6 @@
 import { NodeProcessor } from "./NodeProcessor";
-import { Node, SpeechNode } from "./types";
-import { ExecutionContext, ProcessingResult } from "./types/context";
+import { Node, SpeechNode } from "../types";
+import { ExecutionContext, ProcessingResult } from "../types/context";
 
 export class SpeechNodeProcessor extends NodeProcessor {
   async process(

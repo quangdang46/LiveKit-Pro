@@ -1,5 +1,5 @@
-import { ExecutionContext, ProcessingResult } from "./types/context";
-import { Script, Node } from "./types";
+import { ExecutionContext, ProcessingResult } from "../types/context";
+import { Script, Node } from "../types";
 import { ProcessorFactory } from "./ProcessorFactory";
 
 export class ScriptProcessor {

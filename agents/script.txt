@@ -1,4 +1,8 @@
-[
+{
+  "id": "0e064fbc-80e1-492b-95e7-cac64331b4ad",
+  "name": "Test",
+  "description": "Test description",
+  "scriptData": [
     {
       "id": "root",
       "data": {
@@ -187,4 +191,7 @@
       "type": "SpeechNode",
       "edges": []
     }
-  ]
+  ],
+  "createdAt": "2025-09-09T02:22:51.224Z",
+  "updatedAt": "2025-09-09T02:22:51.224Z"
+}

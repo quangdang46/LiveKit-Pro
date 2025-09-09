@@ -79,7 +79,7 @@ Content-Type: application/json
 GET http://localhost:3000/script
 
 ### Get Script
-GET http://localhost:3000/script/384b7d91-2ec7-475d-8f6f-d4f0c6d461a3
+GET http://localhost:3000/script/0e064fbc-80e1-492b-95e7-cac64331b4ad
 
 ### Validate Script
 POST http://localhost:3000/script/b57d4b54-c78e-43e8-af06-42430b80021a/validate

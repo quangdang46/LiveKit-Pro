@@ -1,5 +1,5 @@
-import { Node } from "./types";
-import { ExecutionContext, ProcessingResult } from "./types/context";
+import { Node } from "../types";
+import { ExecutionContext, ProcessingResult } from "../types/context";
 
 export abstract class NodeProcessor {
   abstract process(

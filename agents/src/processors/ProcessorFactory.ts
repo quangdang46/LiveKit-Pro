@@ -1,10 +1,10 @@
 import { DTMFNodeProcessor } from "./DTMFNodeProcessor";
 import { SpeechNodeProcessor } from "./SpeechNodeProcessor";
 import { NodeProcessor } from "./NodeProcessor";
-import { NodeType } from "./types";
+import { NodeType } from "../types";
 
 export class ProcessorFactory {
-  private static processors = new Map<NodeType | string, () => NodeProcessor>();
+  private static processors = new Map<NodeType, () => NodeProcessor>();
 
   static {
     ProcessorFactory.registerProcessor(
@@ -32,14 +32,11 @@ export class ProcessorFactory {
     return factory();
   }
 
-  static registerProcessorInstance(
-    nodeType: string,
-    processor: NodeProcessor
-  ): void {
-    this.processors.set(nodeType, () => processor);
-  }
-
   static unregisterProcessor(nodeType: NodeType): boolean {
     return this.processors.delete(nodeType);
+  }
+
+  static getRegisteredTypes(): NodeType[] {
+    return Array.from(this.processors.keys());
   }
 }

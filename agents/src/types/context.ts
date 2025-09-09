@@ -1,7 +1,7 @@
 export type ExecutionContext = {
   currentNodeId: string;
   variables: Map<string, any>;
-  lastInput?: string;
+  lastInput?: any;
 }
 
 export type ProcessingResult = {

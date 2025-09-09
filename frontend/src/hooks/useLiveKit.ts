@@ -29,6 +29,7 @@ export function useLiveKit(): UseLiveKitReturn {
       try {
         setIsConnecting(true);
         setError(null);
+        setLog("");
 
         const roomInstance = new Room({
           adaptiveStream: true,
@@ -92,12 +93,15 @@ export function useLiveKit(): UseLiveKitReturn {
 
     room.on(RoomEvent.DataReceived, (payload, participant) => {
       const msg = JSON.parse(new TextDecoder().decode(payload));
+      console.log(msg);
       setLog(
         (prev) =>
           prev +
-          `Client received ${JSON.stringify(msg)} from ${
-            participant?.identity
-          }\n`
+          "\n[" +
+          new Date().toLocaleString() +
+          "] " +
+          JSON.stringify(msg) +
+          "\n"
       );
     });
   }, [room]);

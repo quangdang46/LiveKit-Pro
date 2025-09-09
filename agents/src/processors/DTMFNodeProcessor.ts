@@ -1,6 +1,6 @@
 import { NodeProcessor } from "./NodeProcessor";
-import { ExecutionContext, ProcessingResult } from "./types/context";
-import { Node, DTMFNode } from "./types";
+import { ExecutionContext, ProcessingResult } from "../types/context";
+import { Node, DTMFNode } from "../types";
 
 export class DTMFNodeProcessor extends NodeProcessor {
   async process(
@@ -27,15 +27,18 @@ export class DTMFNodeProcessor extends NodeProcessor {
             output: {
               type: "dtmf",
               selectedOption: input,
+              message: `You selected: ${input}`,
             },
           };
         } else {
           return {
             success: false,
-            error: `Invalid DTMF option: ${input}. Valid options: ${dtmfNode.data.options.join(
-              ", "
-            )}`,
+            error: `Invalid option: ${input}. Please choose: ${dtmfNode.data.options.join(", ")}`,
             shouldWait: true,
+            output: {
+              type: "error", 
+              message: `Invalid option: ${input}. Please choose: ${dtmfNode.data.options.join(", ")}`,
+            },
           };
         }
       }
@@ -47,6 +50,7 @@ export class DTMFNodeProcessor extends NodeProcessor {
           type: "dtmf_prompt",
           prompt: dtmfNode.data.prompt,
           options: dtmfNode.data.options,
+          message: dtmfNode.data.prompt,
         },
       };
     } catch (error) {
