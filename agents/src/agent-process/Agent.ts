@@ -17,7 +17,7 @@ type AgentInstance = {
   lastJobTime: Date;
 };
 
-export class AgentPool {
+export class Agent {
   private agents: Map<string, AgentInstance> = new Map();
   private readonly maxAgents: number;
   private readonly agentPrefix: string;
@@ -35,7 +35,7 @@ export class AgentPool {
     const agentId = `${this.agentPrefix}-${instanceSuffix}`;
 
     const opts = new WorkerOptions({
-      agent: "./dist/agent-process/agent-process.js",
+      agent: "./dist/agent-process/AgentHandler.js",
       requestFunc: (job: JobRequest) => this.handleJobRequest(job, agentId),
       loadFunc: () => this.computeLoad(),
       loadThreshold: 0.8,

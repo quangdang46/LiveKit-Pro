@@ -2,7 +2,6 @@ import { Module, Provider } from '@nestjs/common';
 import { AgentService } from './agent.service';
 import {
   AgentDispatchClient,
-  RoomServiceClient,
   WebhookReceiver,
 } from 'livekit-server-sdk';
 import { ConfigService } from '@nestjs/config';
@@ -28,12 +27,7 @@ const getLiveKitConfig = (configService: ConfigService): LiveKitConfig => {
   return { apiKey, apiSecret, url };
 };
 
-const createRoomServiceClient = (
-  configService: ConfigService,
-): RoomServiceClient => {
-  const { apiKey, apiSecret } = getLiveKitConfig(configService);
-  return new RoomServiceClient(apiKey, apiSecret);
-};
+
 
 const createAgentDispatchClient = (
   configService: ConfigService,
@@ -55,11 +49,6 @@ const createWebhookReceiver = (
 const PROVIDERS: Provider[] = [
   AgentService,
   {
-    provide: RoomServiceClient,
-    useFactory: createRoomServiceClient,
-    inject: [ConfigService],
-  },
-  {
     provide: AgentDispatchClient,
     useFactory: createAgentDispatchClient,
     inject: [ConfigService],
@@ -76,7 +65,6 @@ const PROVIDERS: Provider[] = [
   providers: [...PROVIDERS],
   exports: [
     AgentService,
-    RoomServiceClient,
     AgentDispatchClient,
     WebhookReceiver,
   ],

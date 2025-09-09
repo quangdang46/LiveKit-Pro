@@ -26,7 +26,6 @@ export class DTMFNodeProcessor extends NodeProcessor {
             nextNodeId: nextNodeId ?? undefined,
             output: {
               type: "dtmf",
-              selectedOption: input,
               message: `You selected: ${input}`,
             },
           };
@@ -47,9 +46,7 @@ export class DTMFNodeProcessor extends NodeProcessor {
         success: true,
         shouldWait: true,
         output: {
-          type: "dtmf_prompt",
-          prompt: dtmfNode.data.prompt,
-          options: dtmfNode.data.options,
+          type: "dtmf",
           message: dtmfNode.data.prompt,
         },
       };

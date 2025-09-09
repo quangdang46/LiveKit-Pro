@@ -4,8 +4,6 @@ import type { Request } from 'express';
 import {
   AccessToken,
   AgentDispatchClient,
-  Room,
-  RoomServiceClient,
   VideoGrant,
   WebhookReceiver,
   WebhookEvent,
@@ -17,7 +15,6 @@ import { ScriptService } from '../script/script.service';
 export class AgentService {
   constructor(
     private readonly configService: ConfigService,
-    private readonly roomServiceClient: RoomServiceClient,
     private readonly agentDispatchClient: AgentDispatchClient,
     private readonly webhookReceiver: WebhookReceiver,
     private readonly scriptService: ScriptService,
@@ -93,7 +90,7 @@ export class AgentService {
       rawBuffer.toString('utf8'),
       authHeader,
     )) as WebhookEvent;
-    console.log('event===>', event);
+    console.log('event===>', event.event);
     if (
       event.event === 'participant_joined' &&
       !event.participant?.identity.includes('agent')

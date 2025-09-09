@@ -1,12 +1,17 @@
 export type ExecutionContext = {
   currentNodeId: string;
-  lastInput?: any;
+  lastInput?: string | number;
 }
 
 export type ProcessingResult = {
   success: boolean;
   nextNodeId?: string;
-  output?: any;
+  output?: OutputData;
   error?: string;
   shouldWait?: boolean;
+};
+
+export type OutputData = {
+  type: 'speech' | 'dtmf' | 'error';
+  message?: string;
 };
