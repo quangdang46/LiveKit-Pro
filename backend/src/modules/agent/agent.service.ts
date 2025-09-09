@@ -43,7 +43,6 @@ export class AgentService {
     };
     at.addGrant(videoGrant);
     const token = await at.toJwt();
-    console.log('access token', token);
     return token;
   }
 
@@ -71,9 +70,7 @@ export class AgentService {
         },
       );
 
-      console.log(
-        `Agent dispatched to room ${roomName} due to ${participantIdentity} joining,with dispatch ${JSON.stringify(dispatch)}`,
-      );
+ 
       return 'ai-agent';
     } catch (error) {
       console.error('Agent dispatch failed:', error.message);

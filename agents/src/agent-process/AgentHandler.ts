@@ -46,8 +46,23 @@ class AgentHandler {
   }
 
   private async handleMessage(msg: MessageData): Promise<void> {
-    if (msg.type === "dtmf" && msg.digit) {
-      await this.handleDTMFInput(msg.digit);
+    // if (msg.type === "dtmf" && msg.digit) {
+    //   await this.handleDTMFInput(msg.digit);
+    // }
+
+    switch (msg.type) {
+      case "dtmf":
+        if (!msg.digit) {
+          this.publishError("No digit received");
+          return;
+        }
+
+        await this.handleDTMFInput(msg.digit);
+        break;
+
+      // case "":
+      default:
+        break;
     }
   }
 
