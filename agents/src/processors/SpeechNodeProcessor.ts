@@ -1,6 +1,7 @@
 import { NodeProcessor } from "./NodeProcessor";
 import { Node, SpeechNode } from "../types";
 import { ExecutionContext, ProcessingResult } from "../types/context";
+import { ROOT_NODE_ID } from "../constant";
 
 export class SpeechNodeProcessor extends NodeProcessor {
   async process(
@@ -20,9 +21,12 @@ export class SpeechNodeProcessor extends NodeProcessor {
     try {
       const nextNodeId = this.findNextNode(node);
 
+      const shouldAutoTransition = node.id === ROOT_NODE_ID;
+
       return {
         success: true,
         nextNodeId: nextNodeId ?? undefined,
+        shouldWait: !shouldAutoTransition,
         output: {
           type: "speech",
           message: speechNode.data.message,

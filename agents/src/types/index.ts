@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ROOT_NODE_ID } from "../constant";
 
 export const TypeNodeSchema = z.enum(["DTMFNode", "SpeechNode"]);
 
@@ -50,7 +51,7 @@ export const ScriptSchema = z
   })
   .refine(
     (data) => {
-      return data.scriptData.some((node) => node.id === "root");
+      return data.scriptData.some((node) => node.id === ROOT_NODE_ID);
     },
     {
       message: "Root node ID must reference an existing node",

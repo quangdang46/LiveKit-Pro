@@ -1,6 +1,7 @@
 import { ExecutionContext, ProcessingResult } from "../types/context";
 import { Script, Node } from "../types";
 import { ProcessorFactory } from "./ProcessorFactory";
+import { ROOT_NODE_ID } from "../constant";
 
 export class ScriptProcessor {
   private readonly script: Script;
@@ -11,7 +12,7 @@ export class ScriptProcessor {
     this.script = script;
     this.nodeMap = new Map(script.scriptData.map((node) => [node.id, node]));
     this.context = {
-      currentNodeId: "root",
+      currentNodeId: ROOT_NODE_ID,
     };
   }
 

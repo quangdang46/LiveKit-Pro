@@ -24,6 +24,7 @@ export class DTMFNodeProcessor extends NodeProcessor {
           return {
             success: true,
             nextNodeId: nextNodeId ?? undefined,
+            shouldWait: false,
             output: {
               type: "dtmf",
               message: `You selected: ${input}`,
@@ -32,11 +33,15 @@ export class DTMFNodeProcessor extends NodeProcessor {
         } else {
           return {
             success: false,
-            error: `Invalid option: ${input}. Please choose: ${dtmfNode.data.options.join(", ")}`,
+            error: `Invalid option: ${input}. Please choose: ${dtmfNode.data.options.join(
+              ", "
+            )}`,
             shouldWait: true,
             output: {
-              type: "error", 
-              message: `Invalid option: ${input}. Please choose: ${dtmfNode.data.options.join(", ")}`,
+              type: "error",
+              message: `Invalid option: ${input}. Please choose: ${dtmfNode.data.options.join(
+                ", "
+              )}`,
             },
           };
         }
