@@ -12,7 +12,6 @@ export class ScriptProcessor {
     this.nodeMap = new Map(script.scriptData.map((node) => [node.id, node]));
     this.context = {
       currentNodeId: "root",
-      variables: new Map(),
     };
   }
 
@@ -56,24 +55,4 @@ export class ScriptProcessor {
     }
   }
 
-  getCurrentNode(): Node | null {
-    return this.nodeMap.get(this.context.currentNodeId) || null;
-  }
-
-  getContext(): ExecutionContext {
-    return { ...this.context };
-  }
-
-  setVariable(key: string, value: any): void {
-    this.context.variables.set(key, value);
-  }
-
-  getVariable(key: string): any {
-    return this.context.variables.get(key);
-  }
-
-  isComplete(): boolean {
-    const currentNode = this.getCurrentNode();
-    return !currentNode || currentNode.edges.length === 0;
-  }
 }

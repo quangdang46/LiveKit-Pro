@@ -84,3 +84,13 @@ export type Node = z.infer<typeof NodeSchema>;
 export const validateScript = (script: unknown) => {
   return ScriptSchema.safeParse(script);
 };
+
+export type Metadata = {
+  scriptId: string;
+};
+
+export type MessageData = {
+  type: string;
+  digit?: string;
+  [key: string]: any;
+};

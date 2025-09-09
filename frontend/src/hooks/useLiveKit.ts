@@ -92,13 +92,13 @@ export function useLiveKit(): UseLiveKitReturn {
     if (!room) return;
 
     room.on(RoomEvent.DataReceived, (payload, participant) => {
-      const msg = JSON.parse(new TextDecoder().decode(payload));
-      console.log(msg);
+      const msg = JSON.parse(new TextDecoder().decode(payload)) as {
+        message: string;
+      };
 
       const timestamp = new Date().toLocaleString();
-      const formattedMsg = JSON.stringify(msg, null, 2);
 
-      setLog((prev) => [...prev, `[${timestamp}]\n` + `${formattedMsg}\n\n`]);
+      setLog((prev) => [...prev, `[${timestamp}]\n` + `${msg.message}\n\n`]);
     });
   }, [room]);
 

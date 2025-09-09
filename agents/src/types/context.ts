@@ -1,6 +1,5 @@
 export type ExecutionContext = {
   currentNodeId: string;
-  variables: Map<string, any>;
   lastInput?: any;
 }
 

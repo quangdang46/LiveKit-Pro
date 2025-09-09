@@ -1,16 +1,7 @@
 import { defineAgent, JobContext } from "@livekit/agents";
 import { LiveKitProcess } from "../processors/LiveKitProcess";
 import { ProcessingResult } from "../types/context";
-
-type Metadata = {
-  scriptId: string;
-};
-
-type MessageData = {
-  type: string;
-  digit?: string;
-  [key: string]: any;
-};
+import { MessageData, Metadata } from "../types";
 
 class AgentHandler {
   private liveKitProcess: LiveKitProcess;
@@ -22,11 +13,12 @@ class AgentHandler {
   }
 
   async initialize(scriptId: string): Promise<void> {
-
     await this.ctx.connect();
 
-    const initialResult = await this.liveKitProcess.start(`/script/${scriptId}`);
-    
+    const initialResult = await this.liveKitProcess.start(
+      `/script/${scriptId}`
+    );
+
     if (initialResult?.output) {
       this.publishData(initialResult.output);
     }
