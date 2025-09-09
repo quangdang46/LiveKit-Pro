@@ -7,6 +7,7 @@ import {
   VideoGrant,
   WebhookReceiver,
   WebhookEvent,
+  RoomServiceClient,
 } from 'livekit-server-sdk';
 import { ConfigService } from '@nestjs/config';
 import { ScriptService } from '../script/script.service';
@@ -17,6 +18,7 @@ export class AgentService {
     private readonly configService: ConfigService,
     private readonly agentDispatchClient: AgentDispatchClient,
     private readonly webhookReceiver: WebhookReceiver,
+    private readonly room: RoomServiceClient,
     private readonly scriptService: ScriptService,
   ) {}
 
@@ -32,6 +34,7 @@ export class AgentService {
         identity: participantName,
         metadata: JSON.stringify({
           scriptId,
+          room,
         }),
       },
     );
@@ -70,7 +73,6 @@ export class AgentService {
         },
       );
 
- 
       return 'ai-agent';
     } catch (error) {
       console.error('Agent dispatch failed:', error.message);
@@ -104,6 +106,14 @@ export class AgentService {
           event.participant?.identity!,
           parsed.scriptId,
         );
+      }
+    }
+
+    if (event.event === 'participant_left') {
+      const metadata = event.participant?.metadata;
+      if (metadata) {
+        const parsed = JSON.parse(metadata);
+        await this.room.deleteRoom(parsed.room);
       }
     }
 

@@ -2,7 +2,7 @@
 
 import "@livekit/components-styles";
 import { useEffect, useState, useContext } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useScripts } from "@/contexts/ScriptContext";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -10,7 +10,9 @@ import Link from "next/link";
 export default function CallingPage() {
   const searchParams = useSearchParams();
   const scriptId = searchParams.get("scriptId");
-  const { startTestCall, handleButtonClick, testCallLog } = useScripts();
+  const router = useRouter();
+  const { startTestCall, handleButtonClick, testCallLog, endTestCall } =
+    useScripts();
   useEffect(() => {
     if (scriptId) {
       startTestCall(scriptId);
@@ -19,6 +21,11 @@ export default function CallingPage() {
 
   const onClick = (b: string) => {
     handleButtonClick(b);
+  };
+
+  const onEndCall = () => {
+    endTestCall();
+    router.push("/");
   };
 
   return (
@@ -42,6 +49,13 @@ export default function CallingPage() {
               )
             )}
           </div>
+          <Button
+            variant="secondary"
+            className="bg-red-600 p-4 xl mt-5"
+            onClick={onEndCall}
+          >
+            End Call
+          </Button>
         </div>
 
         <div className="w-2/3 p-4 bg-white border-l border-gray-200">

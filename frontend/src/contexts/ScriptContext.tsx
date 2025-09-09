@@ -10,7 +10,6 @@ import React, {
 import { scriptApi } from "@/api";
 import {
   ScriptResponse,
-  ScriptsListResponse,
   UpdateScriptRequest,
   CreateScriptRequest,
 } from "@/types/node";
