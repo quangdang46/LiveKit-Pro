@@ -1,4 +1,5 @@
 import { defineAgent, JobContext } from "@livekit/agents";
+import { LiveKitProcess } from "./LiveKitProcess";
 type Metadata = {
   scriptId: string;
 };
@@ -11,6 +12,9 @@ export default defineAgent({
     });
 
     await ctx.connect();
+
+    const liveKitProcess = new LiveKitProcess();
+    await liveKitProcess.start(metadata.scriptId);
 
     ctx.room.on("dataReceived", (payload, participant) => {
       const msg = JSON.parse(new TextDecoder().decode(payload));
