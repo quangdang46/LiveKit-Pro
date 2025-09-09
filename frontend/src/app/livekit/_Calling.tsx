@@ -46,7 +46,11 @@ export default function CallingPage() {
 
         <div className="w-2/3 p-4 bg-white border-l border-gray-200">
           <div className="h-full text-black p-4 rounded font-mono text-sm overflow-y-auto">
-            {testCallLog}
+            {testCallLog.map((log, index) => (
+              <div className="mb-2 text-xs" key={index}>
+                {log}
+              </div>
+            ))}
           </div>
         </div>
       </div>

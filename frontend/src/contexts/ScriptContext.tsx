@@ -22,7 +22,7 @@ type ScriptContextType = {
   loading: boolean;
   error: string | null;
   testCallRoom: Room | null;
-  testCallLog: string;
+  testCallLog: string[];
   // Actions
   addScript: (newScript: CreateScriptRequest) => Promise<void>;
   deleteScript: (id: string) => Promise<void>;

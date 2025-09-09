@@ -14,7 +14,7 @@ type UseLiveKitReturn = {
   ) => Promise<void>;
   disconnect: () => void;
   sendDtmf: (digit: string) => Promise<void>;
-  log: string;
+  log: string[];
 };
 
 export function useLiveKit(): UseLiveKitReturn {
@@ -22,14 +22,14 @@ export function useLiveKit(): UseLiveKitReturn {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [log, setLog] = useState<string>("");
+  const [log, setLog] = useState<string[]>([]);
 
   const connect = useCallback(
     async (roomName: string, userName: string, scriptId: string) => {
       try {
         setIsConnecting(true);
         setError(null);
-        setLog("");
+        setLog([]);
 
         const roomInstance = new Room({
           adaptiveStream: true,
@@ -94,15 +94,11 @@ export function useLiveKit(): UseLiveKitReturn {
     room.on(RoomEvent.DataReceived, (payload, participant) => {
       const msg = JSON.parse(new TextDecoder().decode(payload));
       console.log(msg);
-      setLog(
-        (prev) =>
-          prev +
-          "\n[" +
-          new Date().toLocaleString() +
-          "] " +
-          JSON.stringify(msg) +
-          "\n"
-      );
+
+      const timestamp = new Date().toLocaleString();
+      const formattedMsg = JSON.stringify(msg, null, 2);
+
+      setLog((prev) => [...prev, `[${timestamp}]\n` + `${formattedMsg}\n\n`]);
     });
   }, [room]);
 
