@@ -109,7 +109,7 @@ export class AgentService {
       }
     }
 
-    if (event.event === 'participant_left') {
+    if (event.event === 'participant_left' || event.event === 'room_finished') {
       const metadata = event.participant?.metadata;
       if (metadata) {
         const parsed = JSON.parse(metadata);

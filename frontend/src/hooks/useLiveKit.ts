@@ -100,6 +100,14 @@ export function useLiveKit(): UseLiveKitReturn {
 
       setLog((prev) => [...prev, `[${timestamp}]\n` + `${msg.message}\n\n`]);
     });
+
+    room.on(RoomEvent.ParticipantDisconnected, (participant) => {
+      console.log("Participant disconnected", participant);
+    });
+
+    room.on(RoomEvent.Disconnected, () => {
+      console.log("Agent: Call ended / room disconnected");
+    });
   }, [room]);
 
   return {

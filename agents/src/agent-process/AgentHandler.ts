@@ -39,6 +39,14 @@ class AgentHandler {
         this.publishError("Processing failed, please try again");
       }
     });
+
+    this.ctx.room.on("disconnected", () => {
+      console.log("Room disconnected, call ended!");
+    });
+
+    this.ctx.room.on("participantDisconnected", (p) => {
+      console.log("Participant disconnected!!", p.identity);
+    });
   }
 
   private parseMessage(payload: Uint8Array): MessageData {
