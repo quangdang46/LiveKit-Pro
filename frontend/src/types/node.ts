@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-export const NodeTypeSchema = z.enum(["SpeechNode", "DTMFNode"]);
+export const NodeTypeSchema = z.enum([
+  "SpeechNode",
+  "DTMFNode",
+  "RecordingNode",
+]);
 export type NodeType = z.infer<typeof NodeTypeSchema>;
 
 export const EdgeSchema = z.object({
@@ -18,6 +22,12 @@ const SpeechNodeDataSchema = z.object({
     .min(1, "Message is required")
     .max(500, "Message too long"),
 });
+const RecordingNodeDataSchema = z.object({
+  message: z
+    .string()
+    .min(1, "Message is required")
+    .max(500, "Message too long"),
+});
 
 const DTMFNodeDataSchema = z.object({
   prompt: z.string().min(1, "Prompt is required").max(200, "Prompt too long"),
@@ -30,7 +40,11 @@ const DTMFNodeDataSchema = z.object({
 export const NodeSchema = z.object({
   id: z.string().min(1, "Node ID is required"),
   type: NodeTypeSchema,
-  data: z.union([SpeechNodeDataSchema, DTMFNodeDataSchema]),
+  data: z.union([
+    SpeechNodeDataSchema,
+    DTMFNodeDataSchema,
+    RecordingNodeDataSchema,
+  ]),
   edges: z.array(EdgeSchema),
 });
 

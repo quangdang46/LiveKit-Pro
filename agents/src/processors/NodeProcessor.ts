@@ -1,10 +1,16 @@
 import { Node } from "../types";
-import { ExecutionContext, ProcessingResult } from "../types/context";
+import { ProcessingResult } from "../types/context";
+import { RecordingClient } from "../http/RecordingClient";
+import { ProcessorContext } from "./ProcessorContext";
+
+export type ProcessorServices = {
+  recordingClient: RecordingClient;
+}
 
 export abstract class NodeProcessor {
   abstract process(
     node: Node,
-    context: ExecutionContext,
+    context: ProcessorContext,
     input?: any
   ): Promise<ProcessingResult>;
 
@@ -18,5 +24,9 @@ export abstract class NodeProcessor {
 
     const defaultEdge = node.edges.find((edge) => !edge.condition);
     return defaultEdge ? defaultEdge.to : null;
+  }
+
+  protected getServices(context: ProcessorContext): ProcessorServices {
+    return context.getServices();
   }
 }

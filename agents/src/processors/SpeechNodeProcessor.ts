@@ -1,12 +1,13 @@
 import { NodeProcessor } from "./NodeProcessor";
 import { Node, SpeechNode } from "../types";
-import { ExecutionContext, ProcessingResult } from "../types/context";
+import { ProcessingResult } from "../types/context";
 import { ROOT_NODE_ID } from "../constant";
+import { ProcessorContext } from "./ProcessorContext";
 
 export class SpeechNodeProcessor extends NodeProcessor {
   async process(
     node: Node,
-    context: ExecutionContext,
+    processorContext: ProcessorContext,
     input?: any
   ): Promise<ProcessingResult> {
     if (node.type !== "SpeechNode") {
@@ -21,7 +22,7 @@ export class SpeechNodeProcessor extends NodeProcessor {
     try {
       const nextNodeId = this.findNextNode(node);
 
-      const shouldAutoTransition = node.id === ROOT_NODE_ID;
+      const shouldAutoTransition = node.id === ROOT_NODE_ID || !!nextNodeId;
 
       return {
         success: true,

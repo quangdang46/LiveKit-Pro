@@ -24,12 +24,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ? exception.getResponse()
         : 'Internal server error';
 
-    console.error(`Exception ${status} Error on ${request.url}:`, {
-      exception: exception instanceof Error ? exception.message : exception,
-      stack: exception instanceof Error ? exception.stack : undefined,
-      message,
-      status
-    });
 
     response.status(status as number).json({
       statusCode: status,

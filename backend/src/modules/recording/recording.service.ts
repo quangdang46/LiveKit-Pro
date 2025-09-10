@@ -1,12 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import {
+  DirectFileOutput,
   EgressClient,
   EncodedFileOutput,
   EncodedFileType,
+  EncodedOutputs,
   RoomServiceClient,
+  S3Upload,
+  SegmentedFileOutput,
   TrackType,
 } from 'livekit-server-sdk';
 import { StartRecordingDto } from './dto/start-recording.dto';
+import {
+  BinaryReadOptions,
+  BinaryWriteOptions,
+} from 'node_modules/@bufbuild/protobuf/dist/cjs/binary-format';
+import {
+  JsonValue,
+  JsonReadOptions,
+  JsonWriteOptions,
+  JsonWriteStringOptions,
+} from 'node_modules/@bufbuild/protobuf/dist/cjs/json-format';
+import { PlainMessage } from 'node_modules/@bufbuild/protobuf/dist/cjs/message';
+import { MessageType } from 'node_modules/@bufbuild/protobuf/dist/cjs/message-type';
 
 @Injectable()
 export class RecordingService {
@@ -15,7 +31,7 @@ export class RecordingService {
     private readonly roomService: RoomServiceClient,
   ) {}
 
-  async findAudioTrackId(
+  async findVideoTrackId(
     roomName: string,
     participantId: string,
   ): Promise<string> {
@@ -27,12 +43,22 @@ export class RecordingService {
       );
     }
 
+    console.log('Participant:', {
+      identity: participant.identity,
+      trackCount: participant.tracks?.length,
+      tracks: participant.tracks?.map((t) => ({
+        sid: t.sid,
+        type: t.type,
+        muted: t.muted,
+        name: t.name,
+      })),
+    });
     const audioTrack = participant.tracks.find(
-      (t) => t.type === TrackType.AUDIO && t.muted === false,
+      (t) => t.type === TrackType.VIDEO && t.muted === false,
     );
 
     if (!audioTrack) {
-      throw new Error(`No active audio track for ${participantId}`);
+      throw new Error(`No active video track for ${participantId}`);
     }
 
     console.log('Track:', {
@@ -48,46 +74,46 @@ export class RecordingService {
   async startRecording(startRecordingDto: StartRecordingDto) {
     const { roomName, participantId, maxDuration = 60 } = startRecordingDto;
 
-    console.log('Request:', {
+    console.log('StartRecording Request:', {
       roomName,
       participantId,
       maxDuration,
     });
 
     try {
-      const audioTrackId = await this.findAudioTrackId(roomName, participantId);
-      const filepath = `/records/${roomName}-${Date.now()}.ogg`;
+      const filepath = `/records/${roomName}-${Date.now()}.mp4`;
 
-      const res = await this.egressClient.startTrackEgress(
+      const res = await this.egressClient.startRoomCompositeEgress(
         roomName,
         new EncodedFileOutput({
-          fileType: EncodedFileType.OGG,
-          filepath: filepath,
+          fileType: EncodedFileType.MP4,
+          filepath,
+          disableManifest: false,
+          output: {
+            value: new S3Upload(),
+            case: 's3',
+          },
         }),
-        audioTrackId,
       );
 
-      setTimeout(async () => {
-        try {
-          await this.egressClient.stopEgress(res.egressId);
-        } catch (error) {
-          console.error(`Failed to stop recording: ${res.egressId}`, error);
-        }
+      console.log('Egress started:', res.egressId);
+      setTimeout(() => {
+        this.stopEgress(res.egressId);
       }, maxDuration * 1000);
 
-      return { egressId: res.egressId };
+      return { egressId: res.egressId, filepath };
     } catch (error) {
+      console.error('Failed to start recording', error);
       throw error;
     }
   }
 
   async stopEgress(egressId: string) {
-    console.log('Stopping recording:', egressId);
-
     try {
       await this.egressClient.stopEgress(egressId);
       return { message: 'Egress stopped' };
     } catch (error) {
+      console.error('Failed to stop egress', error);
       throw new Error('Failed to stop egress');
     }
   }

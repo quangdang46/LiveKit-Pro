@@ -22,6 +22,7 @@ type ScriptContextType = {
   error: string | null;
   testCallRoom: Room | null;
   testCallLog: string[];
+  isPlayingAudio: boolean;
   // Actions
   addScript: (newScript: CreateScriptRequest) => Promise<void>;
   deleteScript: (id: string) => Promise<void>;
@@ -161,6 +162,7 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
     endTestCall,
     handleButtonClick,
     testCallLog: liveKit.log,
+    isPlayingAudio: liveKit.isPlaying,
   };
 
   return (

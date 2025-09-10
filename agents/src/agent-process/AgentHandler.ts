@@ -1,7 +1,4 @@
-import {
-  defineAgent,
-  JobContext,
-} from "@livekit/agents";
+import { defineAgent, JobContext } from "@livekit/agents";
 
 import { LiveKitProcess } from "../processors/LiveKitProcess";
 import { ProcessingResult } from "../types/context";
@@ -10,6 +7,7 @@ import { MessageData, Metadata } from "../types";
 class AgentHandler {
   private liveKitProcess: LiveKitProcess;
   private ctx: JobContext;
+  private activeRecordingEgressId?: string;
 
   constructor(ctx: JobContext) {
     this.ctx = ctx;
@@ -48,8 +46,30 @@ class AgentHandler {
       console.log("Room disconnected, call ended!");
     });
 
-    this.ctx.room.on("participantDisconnected", (p) => {
-      console.log("Participant disconnected!!", p.identity);
+    this.ctx.room.on("participantDisconnected", async (p) => {
+      console.log("Participant disconnected:", p.identity);
+
+      if (this.activeRecordingEgressId) {
+        console.log("Stopping recording", {
+          egressId: this.activeRecordingEgressId,
+          participantIdentity: p.identity,
+        });
+
+        const serviceManager = this.liveKitProcess.getServiceManager();
+        const recordingClient = serviceManager.getRecordingClient();
+
+        try {
+          await recordingClient.stopRecording(this.activeRecordingEgressId);
+          console.log(`Recording stopped: ${this.activeRecordingEgressId}`);
+          this.activeRecordingEgressId = undefined;
+        } catch (error) {
+          console.error("Failed to stop recording on disconnect:", error);
+        }
+      }
+    });
+
+    this.ctx.room.on("trackPublished", (track) => {
+      console.log("Track=>>>>>>>>>>", track);
     });
   }
 
@@ -69,7 +89,7 @@ class AgentHandler {
           return;
         }
 
-        await this.handleDTMFInput(msg.digit);
+        await this.handleDTMFInput(msg.digit, msg.roomName, msg.participantId);
         break;
 
       // case "":
@@ -78,8 +98,18 @@ class AgentHandler {
     }
   }
 
-  private async handleDTMFInput(digit: string): Promise<void> {
-    const result = await this.liveKitProcess.handleInput(digit);
+  private async handleDTMFInput(
+    digit: string,
+    roomName?: string,
+    participantId?: string
+  ): Promise<void> {
+    const input = {
+      digit,
+      roomName,
+      participantId,
+    };
+
+    const result = await this.liveKitProcess.handleInput(input);
     console.log("Processing result:", result);
 
     if (result.isInterrupt) {
@@ -96,6 +126,13 @@ class AgentHandler {
     }
 
     if (result.output) {
+      if (result.output.type === "recording") {
+        console.log("recording===>", result);
+        if (result.output.recordingStarted && result.output.egressId) {
+          this.activeRecordingEgressId = result.output.egressId;
+        }
+      }
+
       this.publishData(result.output);
       return;
     }
@@ -116,7 +153,11 @@ class AgentHandler {
         return;
       }
 
-      result = await this.liveKitProcess.handleInput(undefined as any);
+      if (result.nextNodeId) {
+        result = await this.liveKitProcess.handleInput(undefined as any);
+      } else {
+        result = undefined;
+      }
     }
   }
 

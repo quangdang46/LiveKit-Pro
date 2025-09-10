@@ -10,10 +10,7 @@ export class RecordingController {
   @Post('start')
   async startRecording(@Body() startRecordingDto: StartRecordingDto) {
     try {
-      const result =
-        await this.recordingService.startRecording(startRecordingDto);
-      console.log('Recording successfully:', result);
-      return result;
+      return await this.recordingService.startRecording(startRecordingDto);
     } catch (error) {
       console.error('Failed to start recording:', error);
       throw error;

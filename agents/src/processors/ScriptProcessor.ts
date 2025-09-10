@@ -2,28 +2,26 @@ import { ExecutionContext, ProcessingResult } from "../types/context";
 import { Script, Node } from "../types";
 import { ProcessorFactory } from "./ProcessorFactory";
 import { ROOT_NODE_ID } from "../constant";
-import { RecordingClient } from "../http/RecordingClient";
-import { TTSService } from "../services/TTSService";
+import { ServiceManager } from "../services/ServiceManager";
+import { ProcessorContext } from "./ProcessorContext";
 
 export class ScriptProcessor {
   private readonly script: Script;
   private readonly nodeMap: Map<string, Node>;
-  private readonly context: ExecutionContext;
-  private readonly ttsService: TTSService;
-  private readonly recordingClient: RecordingClient;
+  private readonly processorContext: ProcessorContext;
 
-  constructor(
-    script: Script,
-    ttsService: TTSService,
-    recordingClient: RecordingClient
-  ) {
+  constructor(script: Script, serviceManager: ServiceManager) {
     this.script = script;
     this.nodeMap = new Map(script.scriptData.map((node) => [node.id, node]));
-    this.context = {
+
+    const executionContext: ExecutionContext = {
       currentNodeId: ROOT_NODE_ID,
     };
-    this.ttsService = ttsService;
-    this.recordingClient = recordingClient;
+
+    this.processorContext = new ProcessorContext(
+      executionContext,
+      serviceManager
+    );
   }
 
   async start(): Promise<ProcessingResult> {
@@ -31,29 +29,49 @@ export class ScriptProcessor {
   }
 
   async handleInput(input: any): Promise<ProcessingResult> {
-    this.context.lastInput = input;
+    this.processorContext.updateContext({ lastInput: input });
+
+    if (input?.roomName) {
+      this.processorContext.updateContext({ roomName: input.roomName });
+    }
+    if (input?.participantId) {
+      this.processorContext.updateContext({
+        participantId: input.participantId,
+      });
+    }
+
+    this.processorContext.updateContext({ interruptHandled: false });
+
     return this.processCurrentNode(input);
   }
 
   private async processCurrentNode(input?: any): Promise<ProcessingResult> {
-    const currentNode = this.nodeMap.get(this.context.currentNodeId);
+    const context = this.processorContext.getExecutionContext();
+    const currentNode = this.nodeMap.get(context.currentNodeId);
+
     if (!currentNode) {
       return {
         success: false,
-        error: `Node not found: ${this.context.currentNodeId}`,
+        error: `Node not found: ${context.currentNodeId}`,
       };
     }
 
     try {
       const processor = ProcessorFactory.createProcessor(currentNode.type);
-      const result = await processor.process(currentNode, this.context, input);
+      const result = await processor.process(
+        currentNode,
+        this.processorContext,
+        input
+      );
 
       if (result.shouldRollback) {
         return result;
       }
 
       if (result.success && result.nextNodeId) {
-        this.context.currentNodeId = result.nextNodeId;
+        this.processorContext.updateContext({
+          currentNodeId: result.nextNodeId,
+        });
       }
 
       return result;

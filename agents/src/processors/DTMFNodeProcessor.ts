@@ -1,11 +1,12 @@
 import { NodeProcessor } from "./NodeProcessor";
-import { ExecutionContext, ProcessingResult } from "../types/context";
+import { ProcessingResult } from "../types/context";
 import { Node, DTMFNode } from "../types";
+import { ProcessorContext } from "./ProcessorContext";
 
 export class DTMFNodeProcessor extends NodeProcessor {
   async process(
     node: Node,
-    context: ExecutionContext,
+    processorContext: ProcessorContext,
     input?: any
   ): Promise<ProcessingResult> {
     if (node.type !== "DTMFNode") {
@@ -16,14 +17,19 @@ export class DTMFNodeProcessor extends NodeProcessor {
     }
 
     const dtmfNode = node as DTMFNode;
+    const context = processorContext.getExecutionContext();
 
     try {
-      if (context.isSpeaking && input && typeof input === "string") {
-        context.isSpeaking = false;
-        context.interruptHandled = true;
+      const digit = input?.digit || input;
 
-        if (dtmfNode.data.options.includes(input)) {
-          const nextNodeId = this.findNextNode(node, input);
+      if (context.isSpeaking && digit && typeof digit === "string") {
+        processorContext.updateContext({
+          isSpeaking: false,
+          interruptHandled: true,
+        });
+
+        if (dtmfNode.data.options.includes(digit)) {
+          const nextNodeId = this.findNextNode(node, digit);
           return {
             success: true,
             nextNodeId: nextNodeId ?? undefined,
@@ -31,7 +37,7 @@ export class DTMFNodeProcessor extends NodeProcessor {
             isInterrupt: true,
             output: {
               type: "dtmf",
-              message: `You selected: ${input}`,
+              message: `You selected: ${digit}`,
             },
           };
         } else {
@@ -48,28 +54,28 @@ export class DTMFNodeProcessor extends NodeProcessor {
         }
       }
 
-      if (input && typeof input === "string") {
-        if (dtmfNode.data.options.includes(input)) {
-          const nextNodeId = this.findNextNode(node, input);
+      if (digit && typeof digit === "string") {
+        if (dtmfNode.data.options.includes(digit)) {
+          const nextNodeId = this.findNextNode(node, digit);
           return {
             success: true,
             nextNodeId: nextNodeId ?? undefined,
             shouldWait: false,
             output: {
               type: "dtmf",
-              message: `You selected: ${input}`,
+              message: `You selected: ${digit}`,
             },
           };
         } else {
           return {
             success: false,
-            error: `Invalid option: ${input}. Please choose: ${dtmfNode.data.options.join(
+            error: `Invalid option: ${digit}. Please choose: ${dtmfNode.data.options.join(
               ", "
             )}`,
             shouldWait: true,
             output: {
               type: "error",
-              message: `Invalid option: ${input}. Please choose: ${dtmfNode.data.options.join(
+              message: `Invalid option: ${digit}. Please choose: ${dtmfNode.data.options.join(
                 ", "
               )}`,
             },
@@ -77,7 +83,7 @@ export class DTMFNodeProcessor extends NodeProcessor {
         }
       }
 
-      context.isSpeaking = true;
+      processorContext.updateContext({ isSpeaking: true });
       return {
         success: true,
         shouldWait: true,

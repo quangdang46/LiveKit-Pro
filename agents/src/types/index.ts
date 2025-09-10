@@ -104,5 +104,11 @@ export type Metadata = {
 export type MessageData = {
   type: string;
   digit?: string;
+  roomName?: string;
+  participantId?: string;
   [key: string]: any;
+};
+
+export type RecordingResponse = {
+  egressId: string;
 };

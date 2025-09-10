@@ -16,7 +16,6 @@
   "dependencies": {
     "@livekit/agents": "^1.0.2",
     "dotenv": "^17.2.2",
-    "openai": "^5.20.0",
     "socket.io-client": "^4.8.1",
     "tsx": "^4.20.5",
     "zod": "^3.25.76"

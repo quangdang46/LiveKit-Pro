@@ -3,6 +3,8 @@ export type ExecutionContext = {
   lastInput?: string | number;
   isSpeaking?: boolean;
   interruptHandled?: boolean;
+  roomName?: string;
+  participantId?: string;
 };
 
 export type ProcessingResult = {
@@ -18,4 +20,8 @@ export type ProcessingResult = {
 export type OutputData = {
   type: "speech" | "dtmf" | "error" | "recording";
   message?: string;
+  audio?: Buffer;
+  recordingStarted?: boolean;
+  egressId?: string;
+  playBeep?: boolean;
 };

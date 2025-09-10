@@ -15,6 +15,7 @@ type UseLiveKitReturn = {
   disconnect: () => void;
   sendDtmf: (digit: string) => Promise<void>;
   log: string[];
+  isPlaying: boolean;
 };
 
 export function useLiveKit(): UseLiveKitReturn {
@@ -23,6 +24,7 @@ export function useLiveKit(): UseLiveKitReturn {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [log, setLog] = useState<string[]>([]);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const connect = useCallback(
     async (roomName: string, userName: string, scriptId: string) => {
@@ -73,14 +75,18 @@ export function useLiveKit(): UseLiveKitReturn {
   const sendDtmf = useCallback(
     async (digit: string) => {
       if (!room) return;
-      const msg = { type: "dtmf", digit };
+      const msg = {
+        type: "dtmf",
+        digit,
+        roomName: room.name,
+        participantId: room.localParticipant.identity,
+      };
 
       try {
         room.localParticipant.publishData(
           new TextEncoder().encode(JSON.stringify(msg)),
           { reliable: true }
         );
-        console.log("Sent DTMF", msg);
       } catch (err) {
         console.error("Failed to send DTMF", err);
       }
@@ -88,17 +94,55 @@ export function useLiveKit(): UseLiveKitReturn {
     [room]
   );
 
-  useEffect(() => {
-    if (!room) return;
-
-    room.on(RoomEvent.DataReceived, (payload, participant) => {
-      const msg = JSON.parse(new TextDecoder().decode(payload)) as {
-        message: string;
+  const playBeepFile = useCallback(async () => {
+    console.log("Playing beep file");
+    try {
+      setIsPlaying(true);
+      const audio = new Audio("/beep.mp3");
+      audio.onended = () => {
+        setIsPlaying(false);
+      };
+      audio.onerror = () => {
+        setIsPlaying(false);
       };
 
-      const timestamp = new Date().toLocaleString();
+      await audio.play();
+    } catch (error) {
+      setIsPlaying(false);
+    }
+  }, []);
 
-      setLog((prev) => [...prev, `[${timestamp}]\n` + `${msg.message}\n\n`]);
+  useEffect(() => {
+    if (!room) return;
+    // room.localParticipant.setMicrophoneEnabled(true);
+    // room.localParticipant.setCameraEnabled(true);
+    room.localParticipant.setScreenShareEnabled(true);
+    // room.localParticipant.setAudioContext(new AudioContext());
+
+    room.on(RoomEvent.DataReceived, (payload, participant) => {
+      const decoder = new TextDecoder();
+      const payloadString = decoder.decode(payload);
+
+      try {
+        const msg = JSON.parse(payloadString) as {
+          message?: string;
+          type?: string;
+          playBeep?: boolean;
+        };
+
+
+        if (msg.type === "recording" && msg.playBeep) {
+          setLog((prev) => [...prev, "Playing beep file"]);
+          playBeepFile();
+        }
+
+        const timestamp = new Date().toLocaleString();
+        const logMessage = msg.message || `${msg.type} event`;
+
+        setLog((prev) => [...prev, `[${timestamp}]\n` + `${logMessage}\n\n`]);
+      } catch (error) {
+        console.error("Failed to parse message:", error);
+      }
     });
 
     room.on(RoomEvent.ParticipantDisconnected, (participant) => {
@@ -106,8 +150,9 @@ export function useLiveKit(): UseLiveKitReturn {
     });
 
     room.on(RoomEvent.Disconnected, () => {
-      console.log("Agent: Call ended / room disconnected");
+      console.log("Agent: Call ended room disconnected");
     });
+
   }, [room]);
 
   return {
@@ -119,5 +164,6 @@ export function useLiveKit(): UseLiveKitReturn {
     disconnect,
     sendDtmf,
     log,
+    isPlaying,
   };
 }
