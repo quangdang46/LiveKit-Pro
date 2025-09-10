@@ -1,4 +1,8 @@
-import { defineAgent, JobContext } from "@livekit/agents";
+import {
+  defineAgent,
+  JobContext,
+} from "@livekit/agents";
+
 import { LiveKitProcess } from "../processors/LiveKitProcess";
 import { ProcessingResult } from "../types/context";
 import { MessageData, Metadata } from "../types";
@@ -78,6 +82,10 @@ class AgentHandler {
     const result = await this.liveKitProcess.handleInput(digit);
     console.log("Processing result:", result);
 
+    if (result.isInterrupt) {
+      console.log("Interrupt detected, handling...");
+    }
+
     await this.drainAndPublish(result);
   }
 
@@ -104,7 +112,7 @@ class AgentHandler {
     while (result) {
       this.handleProcessingResult(result);
 
-      if (!result.success || result.shouldWait) {
+      if (!result.success || result.shouldWait || result.shouldRollback) {
         return;
       }
 

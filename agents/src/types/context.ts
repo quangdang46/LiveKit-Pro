@@ -1,7 +1,9 @@
 export type ExecutionContext = {
   currentNodeId: string;
   lastInput?: string | number;
-}
+  isSpeaking?: boolean;
+  interruptHandled?: boolean;
+};
 
 export type ProcessingResult = {
   success: boolean;
@@ -9,9 +11,11 @@ export type ProcessingResult = {
   output?: OutputData;
   error?: string;
   shouldWait?: boolean;
+  shouldRollback?: boolean;
+  isInterrupt?: boolean;
 };
 
 export type OutputData = {
-  type: 'speech' | 'dtmf' | 'error';
+  type: "speech" | "dtmf" | "error" | "recording";
   message?: string;
 };

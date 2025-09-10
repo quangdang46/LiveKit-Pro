@@ -18,6 +18,36 @@ export class DTMFNodeProcessor extends NodeProcessor {
     const dtmfNode = node as DTMFNode;
 
     try {
+      if (context.isSpeaking && input && typeof input === "string") {
+        context.isSpeaking = false;
+        context.interruptHandled = true;
+
+        if (dtmfNode.data.options.includes(input)) {
+          const nextNodeId = this.findNextNode(node, input);
+          return {
+            success: true,
+            nextNodeId: nextNodeId ?? undefined,
+            shouldWait: false,
+            isInterrupt: true,
+            output: {
+              type: "dtmf",
+              message: `You selected: ${input}`,
+            },
+          };
+        } else {
+          return {
+            success: true,
+            shouldWait: true,
+            shouldRollback: true,
+            isInterrupt: true,
+            output: {
+              type: "dtmf",
+              message: dtmfNode.data.prompt,
+            },
+          };
+        }
+      }
+
       if (input && typeof input === "string") {
         if (dtmfNode.data.options.includes(input)) {
           const nextNodeId = this.findNextNode(node, input);
@@ -47,6 +77,7 @@ export class DTMFNodeProcessor extends NodeProcessor {
         }
       }
 
+      context.isSpeaking = true;
       return {
         success: true,
         shouldWait: true,
