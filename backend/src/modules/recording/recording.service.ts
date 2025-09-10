@@ -114,7 +114,6 @@ export class RecordingService {
       return { message: 'Egress stopped' };
     } catch (error) {
       console.error('Failed to stop egress', error);
-      throw new Error('Failed to stop egress');
     }
   }
 }

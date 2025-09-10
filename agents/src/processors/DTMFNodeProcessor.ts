@@ -9,7 +9,7 @@ export class DTMFNodeProcessor extends NodeProcessor {
     processorContext: ProcessorContext,
     input?: any
   ): Promise<ProcessingResult> {
-    if (node.type !== "DTMFNode") {
+    if (!this.isDTMFNode(node)) {
       return {
         success: false,
         error: "Invalid node type for DTMFNodeProcessor",
@@ -20,83 +20,99 @@ export class DTMFNodeProcessor extends NodeProcessor {
     const context = processorContext.getExecutionContext();
 
     try {
-      const digit = input?.digit || input;
-
-      if (context.isSpeaking && digit && typeof digit === "string") {
-        processorContext.updateContext({
-          isSpeaking: false,
-          interruptHandled: true,
-        });
-
-        if (dtmfNode.data.options.includes(digit)) {
-          const nextNodeId = this.findNextNode(node, digit);
-          return {
-            success: true,
-            nextNodeId: nextNodeId ?? undefined,
-            shouldWait: false,
-            isInterrupt: true,
-            output: {
-              type: "dtmf",
-              message: `You selected: ${digit}`,
-            },
-          };
-        } else {
-          return {
-            success: true,
-            shouldWait: true,
-            shouldRollback: true,
-            isInterrupt: true,
-            output: {
-              type: "dtmf",
-              message: dtmfNode.data.prompt,
-            },
-          };
-        }
+      const digit = this.extractDigit(input);
+      if (context.isSpeaking && this.isValidDigit(digit)) {
+        return this.handleSpeakingInterrupt(
+          dtmfNode,
+          node,
+          processorContext,
+          digit
+        );
       }
-
-      if (digit && typeof digit === "string") {
-        if (dtmfNode.data.options.includes(digit)) {
-          const nextNodeId = this.findNextNode(node, digit);
-          return {
-            success: true,
-            nextNodeId: nextNodeId ?? undefined,
-            shouldWait: false,
-            output: {
-              type: "dtmf",
-              message: `You selected: ${digit}`,
-            },
-          };
-        } else {
-          return {
-            success: false,
-            error: `Invalid option: ${digit}. Please choose: ${dtmfNode.data.options.join(
-              ", "
-            )}`,
-            shouldWait: true,
-            output: {
-              type: "error",
-              message: `Invalid option: ${digit}. Please choose: ${dtmfNode.data.options.join(
-                ", "
-              )}`,
-            },
-          };
-        }
+      if (this.isValidDigit(digit)) {
+        return this.handleDigit(dtmfNode, node, digit);
       }
+      return this.promptForInput(dtmfNode, processorContext);
+    } catch (error) {
+      return { success: false, error: `Failed to process DTMF node: ${error}` };
+    }
+  }
 
-      processorContext.updateContext({ isSpeaking: true });
+  private isDTMFNode(node: Node): boolean {
+    return node.type === "DTMFNode";
+  }
+
+  private extractDigit(input?: any): string | undefined {
+    const value = input?.digit ?? input;
+    return typeof value === "string" ? value : undefined;
+  }
+
+  private isValidDigit(digit?: string): digit is string {
+    return typeof digit === "string" && digit.length > 0;
+  }
+
+  private handleSpeakingInterrupt(
+    dtmfNode: DTMFNode,
+    node: Node,
+    processorContext: ProcessorContext,
+    digit?: string
+  ): ProcessingResult {
+    processorContext.updateContext({
+      isSpeaking: false,
+      interruptHandled: true,
+    });
+    if (digit && dtmfNode.data.options.includes(digit)) {
+      const nextNodeId = this.findNextNode(node, digit) ?? undefined;
       return {
         success: true,
-        shouldWait: true,
-        output: {
-          type: "dtmf",
-          message: dtmfNode.data.prompt,
-        },
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: `Failed to process DTMF node: ${error}`,
+        nextNodeId,
+        shouldWait: false,
+        isInterrupt: true,
+        output: { type: "dtmf", message: `You selected: ${digit}` },
       };
     }
+    return {
+      success: true,
+      shouldWait: true,
+      shouldRollback: true,
+      isInterrupt: true,
+      output: { type: "dtmf", message: dtmfNode.data.prompt },
+    };
+  }
+
+  private handleDigit(
+    dtmfNode: DTMFNode,
+    node: Node,
+    digit: string
+  ): ProcessingResult {
+    if (dtmfNode.data.options.includes(digit)) {
+      const nextNodeId = this.findNextNode(node, digit) ?? undefined;
+      return {
+        success: true,
+        nextNodeId,
+        shouldWait: false,
+        output: { type: "dtmf", message: `You selected: ${digit}` },
+      };
+    }
+    const options = dtmfNode.data.options.join(", ");
+    const message = `Invalid option: ${digit}. Please choose: ${options}`;
+    return {
+      success: false,
+      error: message,
+      shouldWait: true,
+      output: { type: "error", message },
+    };
+  }
+
+  private promptForInput(
+    dtmfNode: DTMFNode,
+    processorContext: ProcessorContext
+  ): ProcessingResult {
+    processorContext.updateContext({ isSpeaking: true });
+    return {
+      success: true,
+      shouldWait: true,
+      output: { type: "dtmf", message: dtmfNode.data.prompt },
+    };
   }
 }
