@@ -10,7 +10,6 @@ import {
   RoomServiceClient,
 } from 'livekit-server-sdk';
 import { ConfigService } from '@nestjs/config';
-import { ScriptService } from '../script/script.service';
 
 @Injectable()
 export class AgentService {
@@ -19,7 +18,6 @@ export class AgentService {
     private readonly agentDispatchClient: AgentDispatchClient,
     private readonly webhookReceiver: WebhookReceiver,
     private readonly room: RoomServiceClient,
-    private readonly scriptService: ScriptService,
   ) {}
 
   async createAccessToken(

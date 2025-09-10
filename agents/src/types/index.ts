@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { ROOT_NODE_ID } from "../constant";
 
-export const TypeNodeSchema = z.enum(["DTMFNode", "SpeechNode"]);
+export const TypeNodeSchema = z.enum([
+  "DTMFNode",
+  "SpeechNode",
+  "RecordingNode",
+]);
 
 export const EdgeConditionSchema = z.object({
   key: z.string(),
@@ -27,6 +31,10 @@ export const DTMFNodeDataSchema = z.object({
   options: z.array(z.string()).min(1, "At least one option is required"),
 });
 
+export const RecordingNodeDataSchema = z.object({
+  message: z.string().min(1, "Message is required"),
+});
+
 export const SpeechNodeSchema = BaseNodeSchema.extend({
   type: z.literal("SpeechNode"),
   data: SpeechNodeDataSchema,
@@ -37,9 +45,15 @@ export const DTMFNodeSchema = BaseNodeSchema.extend({
   data: DTMFNodeDataSchema,
 });
 
+export const RecordingNodeSchema = BaseNodeSchema.extend({
+  type: z.literal("RecordingNode"),
+  data: RecordingNodeDataSchema,
+});
+
 export const NodeSchema = z.discriminatedUnion("type", [
   SpeechNodeSchema,
   DTMFNodeSchema,
+  RecordingNodeSchema,
 ]);
 
 export const ScriptSchema = z
@@ -79,9 +93,9 @@ export type EdgeCondition = z.infer<typeof EdgeConditionSchema>;
 export type Edge = z.infer<typeof EdgeSchema>;
 export type SpeechNode = z.infer<typeof SpeechNodeSchema>;
 export type DTMFNode = z.infer<typeof DTMFNodeSchema>;
+export type RecordingNode = z.infer<typeof RecordingNodeSchema>;
 export type Script = z.infer<typeof ScriptSchema>;
 export type Node = z.infer<typeof NodeSchema>;
-
 
 export type Metadata = {
   scriptId: string;

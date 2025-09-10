@@ -1,5 +1,4 @@
 {
-  "id": "0e064fbc-80e1-492b-95e7-cac64331b4ad",
   "name": "Test",
   "description": "Test description",
   "scriptData": [
@@ -10,41 +9,31 @@
       },
       "type": "SpeechNode",
       "edges": [
-        {
-          "to": "menu"
-        }
+        { "to": "menu" }
       ]
     },
     {
       "id": "menu",
       "data": {
-        "prompt": "Press 1 for Sales, 2 for Support, 0 to return to main menu",
-        "options": [
-          "1",
-          "2",
-          "0"
-        ]
+        "prompt": "Press 1 for Sales, 2 for Support, 9 to start call recording, 0 to return to main menu",
+        "options": ["1", "2", "9", "0"]
       },
       "type": "DTMFNode",
       "edges": [
-        {
-          "to": "sales",
-          "condition": {
-            "key": "1"
-          }
-        },
-        {
-          "to": "support",
-          "condition": {
-            "key": "2"
-          }
-        },
-        {
-          "to": "root",
-          "condition": {
-            "key": "0"
-          }
-        }
+        { "to": "sales", "condition": { "key": "1" } },
+        { "to": "support", "condition": { "key": "2" } },
+        { "to": "start_call_recording", "condition": { "key": "9" } },
+        { "to": "root", "condition": { "key": "0" } }
+      ]
+    },
+    {
+      "id": "start_call_recording",
+      "data": {
+        "message": "Starting call recording..."
+      },
+      "type": "RecordingNode",
+      "edges": [
+        { "to": "menu" }
       ]
     },
     {
@@ -54,41 +43,20 @@
       },
       "type": "SpeechNode",
       "edges": [
-        {
-          "to": "sales_menu"
-        }
+        { "to": "sales_menu" }
       ]
     },
     {
       "id": "sales_menu",
       "data": {
         "prompt": "Sales Department. Press 1 for New Customer, 2 for Existing Customer, 9 to return to main menu",
-        "options": [
-          "1",
-          "2",
-          "9"
-        ]
+        "options": ["1", "2", "9"]
       },
       "type": "DTMFNode",
       "edges": [
-        {
-          "to": "new_customer",
-          "condition": {
-            "key": "1"
-          }
-        },
-        {
-          "to": "existing_customer", 
-          "condition": {
-            "key": "2"
-          }
-        },
-        {
-          "to": "menu",
-          "condition": {
-            "key": "9"
-          }
-        }
+        { "to": "new_customer", "condition": { "key": "1" } },
+        { "to": "existing_customer", "condition": { "key": "2" } },
+        { "to": "menu", "condition": { "key": "9" } }
       ]
     },
     {
@@ -98,9 +66,7 @@
       },
       "type": "SpeechNode",
       "edges": [
-        {
-          "to": "end_call"
-        }
+        { "to": "end_call" }
       ]
     },
     {
@@ -110,9 +76,7 @@
       },
       "type": "SpeechNode",
       "edges": [
-        {
-          "to": "end_call"
-        }
+        { "to": "end_call" }
       ]
     },
     {
@@ -122,41 +86,20 @@
       },
       "type": "SpeechNode",
       "edges": [
-        {
-          "to": "support_menu"
-        }
+        { "to": "support_menu" }
       ]
     },
     {
       "id": "support_menu",
       "data": {
         "prompt": "Support Department. Press 1 for Technical Issues, 2 for Account Questions, 9 to return to main menu",
-        "options": [
-          "1",
-          "2", 
-          "9"
-        ]
+        "options": ["1", "2", "9"]
       },
       "type": "DTMFNode",
       "edges": [
-        {
-          "to": "technical_support",
-          "condition": {
-            "key": "1"
-          }
-        },
-        {
-          "to": "account_support",
-          "condition": {
-            "key": "2"
-          }
-        },
-        {
-          "to": "menu",
-          "condition": {
-            "key": "9"
-          }
-        }
+        { "to": "technical_support", "condition": { "key": "1" } },
+        { "to": "account_support", "condition": { "key": "2" } },
+        { "to": "menu", "condition": { "key": "9" } }
       ]
     },
     {
@@ -166,9 +109,7 @@
       },
       "type": "SpeechNode",
       "edges": [
-        {
-          "to": "end_call"
-        }
+        { "to": "end_call" }
       ]
     },
     {
@@ -178,9 +119,7 @@
       },
       "type": "SpeechNode",
       "edges": [
-        {
-          "to": "end_call"
-        }
+        { "to": "end_call" }
       ]
     },
     {
@@ -191,7 +130,5 @@
       "type": "SpeechNode",
       "edges": []
     }
-  ],
-  "createdAt": "2025-09-09T02:22:51.224Z",
-  "updatedAt": "2025-09-09T02:22:51.224Z"
+  ]
 }

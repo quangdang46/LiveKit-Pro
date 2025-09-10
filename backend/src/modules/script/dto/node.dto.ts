@@ -5,7 +5,7 @@ export class NodeDto {
   id: string;
 
   @IsString()
-  @IsEnum(['SpeechNode', 'DTMFNode'])
+  @IsEnum(['SpeechNode', 'DTMFNode', 'RecordingNode'])
   type: string;
 
   @IsOptional()

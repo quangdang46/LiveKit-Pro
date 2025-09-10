@@ -2,18 +2,28 @@ import { ExecutionContext, ProcessingResult } from "../types/context";
 import { Script, Node } from "../types";
 import { ProcessorFactory } from "./ProcessorFactory";
 import { ROOT_NODE_ID } from "../constant";
+import { RecordingClient } from "../http/RecordingClient";
+import { TTSService } from "../services/TTSService";
 
 export class ScriptProcessor {
   private readonly script: Script;
   private readonly nodeMap: Map<string, Node>;
   private readonly context: ExecutionContext;
+  private readonly ttsService: TTSService;
+  private readonly recordingClient: RecordingClient;
 
-  constructor(script: Script) {
+  constructor(
+    script: Script,
+    ttsService: TTSService,
+    recordingClient: RecordingClient
+  ) {
     this.script = script;
     this.nodeMap = new Map(script.scriptData.map((node) => [node.id, node]));
     this.context = {
       currentNodeId: ROOT_NODE_ID,
     };
+    this.ttsService = ttsService;
+    this.recordingClient = recordingClient;
   }
 
   async start(): Promise<ProcessingResult> {
@@ -37,6 +47,10 @@ export class ScriptProcessor {
     try {
       const processor = ProcessorFactory.createProcessor(currentNode.type);
       const result = await processor.process(currentNode, this.context, input);
+
+      if (result.shouldRollback) {
+        return result;
+      }
 
       if (result.success && result.nextNodeId) {
         this.context.currentNodeId = result.nextNodeId;

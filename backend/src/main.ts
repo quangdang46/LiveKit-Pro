@@ -12,7 +12,14 @@ async function bootstrap() {
   app.use('/livekit/webhook', raw({ type: 'application/webhook+json' }));
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
   );
 
   const configService = app.get(ConfigService);

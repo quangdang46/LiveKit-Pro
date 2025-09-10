@@ -4,6 +4,7 @@ import { LivekitModule } from './modules/livekit/livekit.module';
 import { AgentModule } from './modules/agent/agent.module';
 import config from './config';
 import { ScriptModule } from './modules/script/script.module';
+import { RecordingModule } from './modules/recording/recording.module';
 
 const IMPORTS = [
   ConfigModule.forRoot({
@@ -14,6 +15,7 @@ const IMPORTS = [
   LivekitModule,
   AgentModule,
   ScriptModule,
+  RecordingModule,
 ];
 
 const CONTROLLERS = [];

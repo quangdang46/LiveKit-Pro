@@ -16,64 +16,140 @@ POST http://localhost:3000/script
 Content-Type: application/json
 
 {
-  "name": "Test Script",
-  "description": "Test Script Description",
-  "scriptData":[
+  "name": "Test",
+  "description": "Test description",
+  "scriptData": [
     {
       "id": "root",
-      "type": "SpeechNode",
       "data": {
         "message": "Welcome to the IVR"
       },
+      "type": "SpeechNode",
       "edges": [
-        {
-          "to": "menu"
-        }
+        { "to": "menu" }
       ]
     },
     {
       "id": "menu",
-      "type": "DTMFNode",
       "data": {
-        "prompt": "Press 1 for Sales, 2 for Support",
-        "options": [
-          "1",
-          "2"
-        ]
+        "prompt": "Press 1 for Sales, 2 for Support, 9 to start call recording, 0 to return to main menu",
+        "options": ["1", "2", "9", "0"]
       },
+      "type": "DTMFNode",
       "edges": [
-        {
-          "to": "sales",
-          "condition": {
-            "key": "1"
-          }
-        },
-        {
-          "to": "support",
-          "condition": {
-            "key": "2"
-          }
-        }
+        { "to": "sales", "condition": { "key": "1" } },
+        { "to": "support", "condition": { "key": "2" } },
+        { "to": "start_call_recording", "condition": { "key": "9" } },
+        { "to": "root", "condition": { "key": "0" } }
+      ]
+    },
+    {
+      "id": "start_call_recording",
+      "data": {
+        "message": "Starting call recording..."
+      },
+      "type": "RecordingNode",
+      "edges": [
+        { "to": "menu" }
       ]
     },
     {
       "id": "sales",
-      "type": "SpeechNode",
       "data": {
         "message": "Connecting you to Sales."
       },
-      "edges": []
+      "type": "SpeechNode",
+      "edges": [
+        { "to": "sales_menu" }
+      ]
+    },
+    {
+      "id": "sales_menu",
+      "data": {
+        "prompt": "Sales Department. Press 1 for New Customer, 2 for Existing Customer, 9 to return to main menu",
+        "options": ["1", "2", "9"]
+      },
+      "type": "DTMFNode",
+      "edges": [
+        { "to": "new_customer", "condition": { "key": "1" } },
+        { "to": "existing_customer", "condition": { "key": "2" } },
+        { "to": "menu", "condition": { "key": "9" } }
+      ]
+    },
+    {
+      "id": "new_customer",
+      "data": {
+        "message": "Thank you for your interest. A sales representative will be with you shortly."
+      },
+      "type": "SpeechNode",
+      "edges": [
+        { "to": "end_call" }
+      ]
+    },
+    {
+      "id": "existing_customer",
+      "data": {
+        "message": "Please hold while we connect you to your account manager."
+      },
+      "type": "SpeechNode",
+      "edges": [
+        { "to": "end_call" }
+      ]
     },
     {
       "id": "support",
-      "type": "SpeechNode",
       "data": {
         "message": "Connecting you to Support."
       },
+      "type": "SpeechNode",
+      "edges": [
+        { "to": "support_menu" }
+      ]
+    },
+    {
+      "id": "support_menu",
+      "data": {
+        "prompt": "Support Department. Press 1 for Technical Issues, 2 for Account Questions, 9 to return to main menu",
+        "options": ["1", "2", "9"]
+      },
+      "type": "DTMFNode",
+      "edges": [
+        { "to": "technical_support", "condition": { "key": "1" } },
+        { "to": "account_support", "condition": { "key": "2" } },
+        { "to": "menu", "condition": { "key": "9" } }
+      ]
+    },
+    {
+      "id": "technical_support",
+      "data": {
+        "message": "Please describe your technical issue. A technician will assist you shortly."
+      },
+      "type": "SpeechNode",
+      "edges": [
+        { "to": "end_call" }
+      ]
+    },
+    {
+      "id": "account_support",
+      "data": {
+        "message": "For account questions, please have your account number ready. Connecting you now."
+      },
+      "type": "SpeechNode",
+      "edges": [
+        { "to": "end_call" }
+      ]
+    },
+    {
+      "id": "end_call",
+      "data": {
+        "message": "Thank you for calling. Have a great day!"
+      },
+      "type": "SpeechNode",
       "edges": []
     }
   ]
 }
+
 
 ### Get Scripts
 GET http://localhost:3000/script
@@ -171,5 +247,12 @@ Content-Type: application/json
 }
 
 
+### Start Recording
+POST http://localhost:3000/recording/start
+Content-Type: application/json
 
+{
+  "roomName": "test-call-30485565-d41b-4598-8ece-8888b0d031d4-1757485705161",
+  "participantId": "test-user-30485565-d41b-4598-8ece-8888b0d031d4-1757485705161"
+}
 

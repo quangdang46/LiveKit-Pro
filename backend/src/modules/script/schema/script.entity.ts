@@ -17,10 +17,14 @@ export const DTMFNodeSchema = z.object({
   options: z.array(z.string()),
 });
 
+export const RecordingNodeSchema = z.object({
+  message: z.string(),
+});
+
 export const NodeSchema = z.object({
   id: z.string(),
-  type: z.enum(['SpeechNode', 'DTMFNode']),
-  data: z.union([SpeechNodeSchema, DTMFNodeSchema]),
+  type: z.enum(['SpeechNode', 'DTMFNode',"RecordingNode"]),
+  data: z.union([SpeechNodeSchema, DTMFNodeSchema, RecordingNodeSchema]),
   edges: z
     .array(
       z.object({

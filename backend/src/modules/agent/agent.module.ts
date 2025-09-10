@@ -2,6 +2,7 @@ import { Module, Provider } from '@nestjs/common';
 import { AgentService } from './agent.service';
 import {
   AgentDispatchClient,
+  EgressClient,
   RoomServiceClient,
   WebhookReceiver,
 } from 'livekit-server-sdk';
@@ -19,9 +20,9 @@ const getLiveKitConfig = (configService: ConfigService): LiveKitConfig => {
   const apiSecret = configService.get<string>('LIVEKIT_API_SECRET');
   const url = configService.get<string>('LIVEKIT_URL');
 
-  if (!apiKey || !apiSecret) {
+  if (!apiKey || !apiSecret || !url) {
     throw new Error(
-      'Missing required LiveKit configuration: LIVEKIT_API_KEY and LIVEKIT_API_SECRET',
+      'Missing required LiveKit configuration: LIVEKIT_API_KEY and LIVEKIT_API_SECRET and LIVEKIT_URL_AUDIO and LIVEKIT_URL',
     );
   }
 
@@ -48,8 +49,16 @@ const createWebhookReceiver = (
 const createRoomServiceClient = (
   configService: ConfigService,
 ): RoomServiceClient => {
-  const { apiKey, apiSecret } = getLiveKitConfig(configService);
-  return new RoomServiceClient(apiKey, apiSecret);
+  const { apiKey, apiSecret, url } = getLiveKitConfig(configService);
+  if (!url) {
+    throw new Error('Missing required LiveKit configuration: LIVEKIT_URL');
+  }
+  return new RoomServiceClient(url, apiKey, apiSecret);
+};
+
+const createEgressClient = (configService: ConfigService): EgressClient => {
+  const { apiKey, apiSecret, url } = getLiveKitConfig(configService);
+  return new EgressClient(url!, apiKey, apiSecret);
 };
 
 const PROVIDERS: Provider[] = [
@@ -69,11 +78,22 @@ const PROVIDERS: Provider[] = [
     useFactory: createRoomServiceClient,
     inject: [ConfigService],
   },
+  {
+    provide: EgressClient,
+    useFactory: createEgressClient,
+    inject: [ConfigService],
+  },
 ];
 
 @Module({
   imports: [ScriptModule],
   providers: [...PROVIDERS],
-  exports: [AgentService, AgentDispatchClient, WebhookReceiver],
+  exports: [
+    AgentService,
+    AgentDispatchClient,
+    WebhookReceiver,
+    RoomServiceClient,
+    EgressClient,
+  ],
 })
 export class AgentModule {}

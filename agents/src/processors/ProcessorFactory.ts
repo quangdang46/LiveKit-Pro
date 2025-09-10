@@ -2,6 +2,7 @@ import { DTMFNodeProcessor } from "./DTMFNodeProcessor";
 import { SpeechNodeProcessor } from "./SpeechNodeProcessor";
 import { NodeProcessor } from "./NodeProcessor";
 import { NodeType } from "../types";
+import { RecordingNodeProcessor } from "./RecordingNodeProcessor";
 
 export class ProcessorFactory {
   private static processors = new Map<NodeType, () => NodeProcessor>();
@@ -14,6 +15,10 @@ export class ProcessorFactory {
     ProcessorFactory.registerProcessor(
       "DTMFNode",
       () => new DTMFNodeProcessor()
+    );
+    ProcessorFactory.registerProcessor(
+      "RecordingNode",
+      () => new RecordingNodeProcessor()
     );
   }
 
