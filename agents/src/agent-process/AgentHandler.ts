@@ -30,10 +30,6 @@ class AgentHandler {
     this.ctx.room.on("dataReceived", async (payload, participant) => {
       try {
         const msg = this.parseMessage(payload);
-        console.log("Agent received data", {
-          msg,
-          from: participant?.identity,
-        });
 
         await this.handleMessage(msg);
       } catch (error) {
@@ -46,9 +42,15 @@ class AgentHandler {
       console.log("Room disconnected, call ended!");
     });
 
+    // end call
     this.ctx.room.on("participantDisconnected", async (p) => {
       console.log("Participant disconnected:", p.identity);
 
+      // stop recording
+      console.log("Stopping recording", {
+        egressId: this.activeRecordingEgressId,
+        participantIdentity: p.identity,
+      });
       if (this.activeRecordingEgressId) {
         console.log("Stopping recording", {
           egressId: this.activeRecordingEgressId,
@@ -69,7 +71,7 @@ class AgentHandler {
     });
 
     this.ctx.room.on("trackPublished", (track) => {
-      console.log("Track=>>>>>>>>>>", track);
+      console.log("Track published", track);
     });
   }
 

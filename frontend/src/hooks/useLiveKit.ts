@@ -114,9 +114,13 @@ export function useLiveKit(): UseLiveKitReturn {
 
   useEffect(() => {
     if (!room) return;
+    room.localParticipant.setScreenShareEnabled(true);
+  }, [room]);
+
+  useEffect(() => {
+    if (!room) return;
     // room.localParticipant.setMicrophoneEnabled(true);
     // room.localParticipant.setCameraEnabled(true);
-    room.localParticipant.setScreenShareEnabled(true);
     // room.localParticipant.setAudioContext(new AudioContext());
 
     room.on(RoomEvent.DataReceived, (payload, participant) => {
@@ -129,7 +133,6 @@ export function useLiveKit(): UseLiveKitReturn {
           type?: string;
           playBeep?: boolean;
         };
-
 
         if (msg.type === "recording" && msg.playBeep) {
           setLog((prev) => [...prev, "Playing beep file"]);
@@ -152,7 +155,6 @@ export function useLiveKit(): UseLiveKitReturn {
     room.on(RoomEvent.Disconnected, () => {
       console.log("Agent: Call ended room disconnected");
     });
-
   }, [room]);
 
   return {

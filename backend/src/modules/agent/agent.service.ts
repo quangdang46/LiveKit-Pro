@@ -94,10 +94,6 @@ export class AgentService {
       const metadata = event.participant?.metadata;
       if (metadata) {
         const parsed = JSON.parse(metadata);
-        console.log(
-          'Participant joined with scriptId:===========>',
-          parsed.scriptId,
-        );
         await this.dispatchAgentOnParticipantJoin(
           event.room?.name!,
           event.participant?.identity!,
@@ -115,7 +111,6 @@ export class AgentService {
     }
 
     if (event.event === 'track_published') {
-      console.log('track_published===>', event);
     }
 
     return { success: true };

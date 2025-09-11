@@ -32,16 +32,7 @@ export class RecordingService {
       );
     }
 
-    console.log('Participant:', {
-      identity: participant.identity,
-      trackCount: participant.tracks?.length,
-      tracks: participant.tracks?.map((t) => ({
-        sid: t.sid,
-        type: t.type,
-        muted: t.muted,
-        name: t.name,
-      })),
-    });
+
     const videoTrack = participant.tracks.find(
       (t) => t.type === TrackType.VIDEO && t.muted === false,
     );
@@ -50,12 +41,7 @@ export class RecordingService {
       throw new Error(`No active video track for ${participantId}`);
     }
 
-    console.log('Video Track:', {
-      sid: videoTrack.sid,
-      type: videoTrack.type,
-      muted: videoTrack.muted,
-      name: videoTrack.name,
-    });
+
 
     return videoTrack.sid;
   }
@@ -63,11 +49,7 @@ export class RecordingService {
   async startRecording(startRecordingDto: StartRecordingDto) {
     const { roomName, participantId, maxDuration = 60 } = startRecordingDto;
 
-    console.log('StartRecording Request:', {
-      roomName,
-      participantId,
-      maxDuration,
-    });
+
 
     try {
 
@@ -75,7 +57,7 @@ export class RecordingService {
         roomName,
         participantId,
       );
-      const filepath = `/records/${roomName}-${participantId}-${Date.now()}.mp4`;
+      const filepath = `/records/${roomName}-${participantId}-${Date.now()}`;
 
       const s3Upload = new S3Upload({
         accessKey: process.env.S3_ACCESS_KEY,
@@ -84,7 +66,6 @@ export class RecordingService {
         bucket: process.env.S3_BUCKET,
       });
 
-      console.log('S3 Upload:', s3Upload);
 
       const res = await this.egressClient.startTrackEgress(
         roomName,
