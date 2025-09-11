@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   DirectFileOutput,
   EgressClient,
+  EgressStatus,
   EncodedFileOutput,
   EncodedFileType,
   EncodedOutputs,
@@ -11,18 +12,6 @@ import {
   TrackType,
 } from 'livekit-server-sdk';
 import { StartRecordingDto } from './dto/start-recording.dto';
-import {
-  BinaryReadOptions,
-  BinaryWriteOptions,
-} from 'node_modules/@bufbuild/protobuf/dist/cjs/binary-format';
-import {
-  JsonValue,
-  JsonReadOptions,
-  JsonWriteOptions,
-  JsonWriteStringOptions,
-} from 'node_modules/@bufbuild/protobuf/dist/cjs/json-format';
-import { PlainMessage } from 'node_modules/@bufbuild/protobuf/dist/cjs/message';
-import { MessageType } from 'node_modules/@bufbuild/protobuf/dist/cjs/message-type';
 
 @Injectable()
 export class RecordingService {
@@ -31,7 +20,7 @@ export class RecordingService {
     private readonly roomService: RoomServiceClient,
   ) {}
 
-  async findVideoTrackId(
+  async findScreenShareTrackId(
     roomName: string,
     participantId: string,
   ): Promise<string> {
@@ -53,22 +42,22 @@ export class RecordingService {
         name: t.name,
       })),
     });
-    const audioTrack = participant.tracks.find(
+    const videoTrack = participant.tracks.find(
       (t) => t.type === TrackType.VIDEO && t.muted === false,
     );
 
-    if (!audioTrack) {
+    if (!videoTrack) {
       throw new Error(`No active video track for ${participantId}`);
     }
 
-    console.log('Track:', {
-      sid: audioTrack.sid,
-      type: audioTrack.type,
-      muted: audioTrack.muted,
-      name: audioTrack.name,
+    console.log('Video Track:', {
+      sid: videoTrack.sid,
+      type: videoTrack.type,
+      muted: videoTrack.muted,
+      name: videoTrack.name,
     });
 
-    return audioTrack.sid;
+    return videoTrack.sid;
   }
 
   async startRecording(startRecordingDto: StartRecordingDto) {
@@ -81,39 +70,85 @@ export class RecordingService {
     });
 
     try {
-      const filepath = `/records/${roomName}-${Date.now()}.mp4`;
 
-      const res = await this.egressClient.startRoomCompositeEgress(
+      const trackSid = await this.findScreenShareTrackId(
+        roomName,
+        participantId,
+      );
+      const filepath = `/records/${roomName}-${participantId}-${Date.now()}.mp4`;
+
+      const s3Upload = new S3Upload({
+        accessKey: process.env.S3_ACCESS_KEY,
+        secret: process.env.S3_SECRET_KEY,
+        region: process.env.S3_REGION,
+        bucket: process.env.S3_BUCKET,
+      });
+
+      console.log('S3 Upload:', s3Upload);
+
+      const res = await this.egressClient.startTrackEgress(
         roomName,
         new EncodedFileOutput({
           fileType: EncodedFileType.MP4,
           filepath,
           disableManifest: false,
           output: {
-            value: new S3Upload(),
+            value: s3Upload,
             case: 's3',
           },
         }),
+        trackSid,
       );
 
-      console.log('Egress started:', res.egressId);
+      console.log('Screen share recording started:', res.egressId);
+
       setTimeout(() => {
         this.stopEgress(res.egressId);
       }, maxDuration * 1000);
 
-      return { egressId: res.egressId, filepath };
+      return { egressId: res.egressId, filepath, trackSid };
     } catch (error) {
-      console.error('Failed to start recording', error);
+      console.error('Failed to start screen share recording', error);
       throw error;
     }
   }
 
+
   async stopEgress(egressId: string) {
     try {
-      await this.egressClient.stopEgress(egressId);
-      return { message: 'Egress stopped' };
+      const egressInfo = await this.egressClient.listEgress({ egressId });
+      const egress = egressInfo.find((e) => e.egressId === egressId);
+
+      if (!egress) {
+        console.error('Egress not found:', egressId);
+        return { message: 'Egress not found' };
+      }
+
+      console.log(
+        'Egress status:',
+        egress.status,
+        '(',
+        EgressStatus[egress.status],
+        ')',
+      );
+      console.log('Egress error:', egress.error);
+      console.log('File results:', egress.fileResults);
+
+      if (egress.status === EgressStatus.EGRESS_ACTIVE) {
+        await this.egressClient.stopEgress(egressId);
+        console.log('Egress stopped');
+        return { message: 'Egress stopped' };
+      } else {
+        console.log('Egress already in status:', egress.status);
+        return {
+          message: `Egress already in status: ${egress.status}`,
+          status: egress.status,
+          error: egress.error,
+        };
+      }
     } catch (error) {
       console.error('Failed to stop egress', error);
+      return { error: error.message, status: 'failed' };
     }
   }
 }

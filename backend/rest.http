@@ -256,3 +256,12 @@ Content-Type: application/json
   "participantId": "test-user-30485565-d41b-4598-8ece-8888b0d031d4-1757485705161"
 }
 
+
+### Stop Recording
+POST http://localhost:3000/recording/stop
+Content-Type: application/json
+
+{
+  "egressId": "EG_8QoVjY3BaXyw"
+}
+
