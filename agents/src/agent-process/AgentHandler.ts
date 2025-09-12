@@ -125,10 +125,10 @@ class AgentHandler {
     await this.drainAndPublish(result);
   }
 
-  private handleProcessingResult(result: ProcessingResult | undefined): void {
+  private async handleProcessingResult(result: ProcessingResult | undefined): Promise<void> {
     if (!result) {
       this.publishError("No result from processing");
-      this.voiceHandler.speakMessage("Sorry, there was a processing error");
+      await this.voiceHandler.speakMessage("Sorry, there was a processing error");
       return;
     }
 
@@ -141,7 +141,7 @@ class AgentHandler {
       }
 
       if (result.output.message) {
-        this.voiceHandler.speakMessage(result.output.message);
+        await this.voiceHandler.speakMessage(result.output.message);
       }
 
       this.publishData(result.output);
@@ -151,7 +151,7 @@ class AgentHandler {
     if (result.error) {
       console.log("Error:", result.error);
       this.publishError(result.error);
-      this.voiceHandler.speakMessage(
+      await this.voiceHandler.speakMessage(
         `Sorry, there was an error: ${result.error}`
       );
     }
@@ -161,7 +161,7 @@ class AgentHandler {
     result: ProcessingResult | undefined
   ): Promise<void> {
     while (result) {
-      this.handleProcessingResult(result);
+      await this.handleProcessingResult(result);
 
       if (!result.success || result.shouldWait || result.shouldRollback) {
         return;

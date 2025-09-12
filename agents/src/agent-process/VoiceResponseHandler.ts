@@ -34,12 +34,14 @@ export class VoiceResponseHandler {
           model: "gemini-2.0-flash-001",
           apiKey: process.env.GOOGLE_API_KEY!,
         }),
+
         tts: new cartesia.TTS({
           model: "sonic-2",
           apiKey: process.env.CARTESIA_API_KEY!,
           voice: "f786b574-daa5-4673-aa0c-cbe3e8534c02",
-          chunkTimeout: 15000,
+          chunkTimeout: 60000,
         }),
+
         turnDetection: new livekit.turnDetector.MultilingualModel(),
       });
 
