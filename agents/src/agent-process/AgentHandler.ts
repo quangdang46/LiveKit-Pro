@@ -3,19 +3,25 @@ import { defineAgent, JobContext } from "@livekit/agents";
 import { LiveKitProcess } from "../processors/LiveKitProcess";
 import { ProcessingResult } from "../types/context";
 import { MessageData, Metadata } from "../types";
+import { VoiceResponseHandler } from "./VoiceResponseHandler";
+
 
 class AgentHandler {
   private liveKitProcess: LiveKitProcess;
   private ctx: JobContext;
   private activeRecordingEgressId?: string;
+  private voiceHandler: VoiceResponseHandler;
 
   constructor(ctx: JobContext) {
     this.ctx = ctx;
     this.liveKitProcess = new LiveKitProcess();
+    this.voiceHandler = new VoiceResponseHandler(ctx);
   }
 
   async initialize(scriptId: string): Promise<void> {
     await this.ctx.connect();
+
+    await this.voiceHandler.initialize();
 
     const initialResult = await this.liveKitProcess.start(
       `/script/${scriptId}`
@@ -124,6 +130,7 @@ class AgentHandler {
   private handleProcessingResult(result: ProcessingResult | undefined): void {
     if (!result) {
       this.publishError("No result from processing");
+      this.voiceHandler.speakMessage("Sorry, there was a processing error");
       return;
     }
 
@@ -135,6 +142,10 @@ class AgentHandler {
         }
       }
 
+      if (result.output.message) {
+        this.voiceHandler.speakMessage(result.output.message);
+      }
+
       this.publishData(result.output);
       return;
     }
@@ -142,6 +153,7 @@ class AgentHandler {
     if (result.error) {
       console.log("Error:", result.error);
       this.publishError(result.error);
+      this.voiceHandler.speakMessage(`Sorry, there was an error: ${result.error}`);
     }
   }
 

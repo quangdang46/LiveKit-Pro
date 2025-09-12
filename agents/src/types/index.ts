@@ -35,6 +35,7 @@ export const RecordingNodeDataSchema = z.object({
   message: z.string().min(1, "Message is required"),
 });
 
+
 export const SpeechNodeSchema = BaseNodeSchema.extend({
   type: z.literal("SpeechNode"),
   data: SpeechNodeDataSchema,
@@ -49,6 +50,7 @@ export const RecordingNodeSchema = BaseNodeSchema.extend({
   type: z.literal("RecordingNode"),
   data: RecordingNodeDataSchema,
 });
+
 
 export const NodeSchema = z.discriminatedUnion("type", [
   SpeechNodeSchema,
