@@ -59,13 +59,10 @@ export default function CallingPage() {
         </div>
 
         <div className="w-2/3 p-4 bg-white border-l border-gray-200">
-          {/* Audio Activity Indicator */}
           <div className="mb-4 p-3 bg-gray-50 rounded-lg border">
-            <h3 className="text-sm font-semibold mb-2 text-gray-700">Trạng thái âm thanh Agent</h3>
             <AudioActivityIndicator room={testCallRoom} />
           </div>
 
-          {/* Call Log */}
           <div className="h-full text-black p-4 rounded font-mono text-sm overflow-y-auto">
             {testCallLog.map((log, index) => (
               <div className="mb-2 text-xs" key={index}>

@@ -20,7 +20,7 @@ export const AudioActivityIndicator: React.FC<AudioActivityIndicatorProps> = ({
       }`} />
       
       <div className="flex items-center space-x-1">
-        <span className="text-sm text-gray-600">Audio:</span>
+        <span className="text-sm text-gray-600">Audio</span>
         <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
           <div 
             className={`h-full transition-all duration-100 ${
@@ -35,7 +35,7 @@ export const AudioActivityIndicator: React.FC<AudioActivityIndicatorProps> = ({
       <span className={`text-sm font-medium ${
         isAgentSpeaking ? 'text-green-600' : 'text-gray-500'
       }`}>
-        {isAgentSpeaking ? 'Agent đang nói' : 'Im lặng'}
+        {isAgentSpeaking ? 'Speaking' : 'Silent'}
       </span>
     </div>
   );
