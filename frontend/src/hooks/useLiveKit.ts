@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Participant, Room, RoomEvent } from "livekit-client";
+import { Participant, Room, RoomEvent, TrackPublication } from "livekit-client";
 import { livekitApi } from "@/api";
 
 type UseLiveKitReturn = {
@@ -154,6 +154,42 @@ export function useLiveKit(): UseLiveKitReturn {
 
     room.on(RoomEvent.Disconnected, () => {
       console.log("Agent: Call ended room disconnected");
+    });
+
+    room.on(RoomEvent.TrackPublished, (trackPublication, participant) => {
+      if (
+        participant?.identity?.includes("agent") &&
+        trackPublication.kind === "audio"
+      ) {
+        console.log("Agent started speaking:", {
+          participant: participant.identity,
+          trackSid: trackPublication.trackSid,
+          timestamp: new Date().toISOString(),
+        });
+
+        setLog((prev) => [
+          ...prev,
+          `[${new Date().toLocaleString()}]\nAgent started speaking\n\n`,
+        ]);
+      }
+    });
+
+    room.on(RoomEvent.TrackUnpublished, (trackPublication, participant) => {
+      if (
+        participant?.identity?.includes("agent") &&
+        trackPublication.kind === "audio"
+      ) {
+        console.log("Agent stopped speaking:", {
+          participant: participant.identity,
+          trackSid: trackPublication.trackSid,
+          timestamp: new Date().toISOString(),
+        });
+
+        setLog((prev) => [
+          ...prev,
+          `[${new Date().toLocaleString()}]\nAgent stopped speaking\n\n`,
+        ]);
+      }
     });
   }, [room]);
 
