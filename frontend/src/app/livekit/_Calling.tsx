@@ -1,7 +1,6 @@
 "use client";
 
-import "@livekit/components-styles";
-import { useEffect, useState, useContext } from "react";
+import { useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useScripts } from "@/contexts/ScriptContext";
 import { Button } from "@/components/ui/button";
