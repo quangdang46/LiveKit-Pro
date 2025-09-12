@@ -1,10 +1,9 @@
-import { defineAgent, JobContext } from "@livekit/agents";
-
+import { defineAgent, JobContext, JobProcess } from "@livekit/agents";
+import * as silero from "@livekit/agents-plugin-silero";
 import { LiveKitProcess } from "../processors/LiveKitProcess";
 import { ProcessingResult } from "../types/context";
 import { MessageData, Metadata } from "../types";
 import { VoiceResponseHandler } from "./VoiceResponseHandler";
-
 
 class AgentHandler {
   private liveKitProcess: LiveKitProcess;
@@ -12,10 +11,10 @@ class AgentHandler {
   private activeRecordingEgressId?: string;
   private voiceHandler: VoiceResponseHandler;
 
-  constructor(ctx: JobContext) {
+  constructor(ctx: JobContext, vad: silero.VAD) {
     this.ctx = ctx;
     this.liveKitProcess = new LiveKitProcess();
-    this.voiceHandler = new VoiceResponseHandler(ctx);
+    this.voiceHandler = new VoiceResponseHandler(ctx, vad);
   }
 
   async initialize(scriptId: string): Promise<void> {
@@ -77,7 +76,6 @@ class AgentHandler {
     });
 
     this.ctx.room.on("trackPublished", (track) => {
-      console.log("Track published", track);
     });
   }
 
@@ -153,7 +151,9 @@ class AgentHandler {
     if (result.error) {
       console.log("Error:", result.error);
       this.publishError(result.error);
-      this.voiceHandler.speakMessage(`Sorry, there was an error: ${result.error}`);
+      this.voiceHandler.speakMessage(
+        `Sorry, there was an error: ${result.error}`
+      );
     }
   }
 
@@ -191,9 +191,13 @@ class AgentHandler {
 }
 
 export default defineAgent({
+  prewarm: async (proc: JobProcess) => {
+    proc.userData.vad = await silero.VAD.load();
+  },
   entry: async (ctx: JobContext) => {
+    const vad = ctx.proc.userData.vad! as silero.VAD;
     const metadata = JSON.parse(ctx.job.metadata) as Metadata;
-    const handler = new AgentHandler(ctx);
+    const handler = new AgentHandler(ctx, vad);
     await handler.initialize(metadata.scriptId);
   },
 });

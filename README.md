@@ -1,2 +1,0 @@
-- `docker compose up --build`
-- `ngrok http 3000`

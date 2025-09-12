@@ -2,14 +2,18 @@ import { type JobContext, voice } from "@livekit/agents";
 import * as cartesia from "@livekit/agents-plugin-cartesia";
 import * as deepgram from "@livekit/agents-plugin-deepgram";
 import * as google from "@livekit/agents-plugin-google";
-
+import * as silero from "@livekit/agents-plugin-silero";
+import * as livekit from "@livekit/agents-plugin-livekit";
+import { BackgroundVoiceCancellation } from "@livekit/noise-cancellation-node";
 export class VoiceResponseHandler {
   private voiceSession?: voice.AgentSession;
   private voiceAssistant?: voice.Agent;
   private ctx: JobContext;
+  private vad: silero.VAD;
 
-  constructor(ctx: JobContext) {
+  constructor(ctx: JobContext, vad: silero.VAD) {
     this.ctx = ctx;
+    this.vad = vad;
   }
 
   async initialize(): Promise<void> {
@@ -19,25 +23,32 @@ export class VoiceResponseHandler {
           "You are a helpful voice AI assistant for an interactive voice response system.",
       });
 
+      console.log("vad", this.vad);
       this.voiceSession = new voice.AgentSession({
+        vad: this.vad,
         stt: new deepgram.STT({
           model: "nova-3",
-          language: "multi",
+          apiKey: process.env.DEEPGRAM_API_KEY!,
         }),
         llm: new google.LLM({
           model: "gemini-2.0-flash-001",
           apiKey: process.env.GOOGLE_API_KEY!,
-          temperature: 0.7,
         }),
         tts: new cartesia.TTS({
           model: "sonic-2",
+          apiKey: process.env.CARTESIA_API_KEY!,
           voice: "f786b574-daa5-4673-aa0c-cbe3e8534c02",
+          chunkTimeout: 15000,
         }),
+        turnDetection: new livekit.turnDetector.MultilingualModel(),
       });
 
       await this.voiceSession.start({
         agent: this.voiceAssistant,
         room: this.ctx.room,
+        inputOptions: {
+          noiseCancellation: BackgroundVoiceCancellation(),
+        },
       });
 
       console.log("VoiceResponseHandler initialized successfully");
