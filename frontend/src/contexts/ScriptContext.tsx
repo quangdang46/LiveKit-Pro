@@ -23,6 +23,7 @@ type ScriptContextType = {
   testCallRoom: Room | null;
   testCallLog: string[];
   isPlayingAudio: boolean;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
   // Actions
   addScript: (newScript: CreateScriptRequest) => Promise<void>;
   deleteScript: (id: string) => Promise<void>;
@@ -163,6 +164,7 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
     handleButtonClick,
     testCallLog: liveKit.log,
     isPlayingAudio: liveKit.isPlaying,
+    audioRef: liveKit.audioRef,
   };
 
   return (

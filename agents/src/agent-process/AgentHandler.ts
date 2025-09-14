@@ -21,6 +21,7 @@ class AgentHandler {
     await this.ctx.connect();
 
     await this.voiceHandler.initialize();
+    await this.voiceHandler.onEnter();
 
     const initialResult = await this.liveKitProcess.start(
       `/script/${scriptId}`
@@ -75,8 +76,7 @@ class AgentHandler {
       }
     });
 
-    this.ctx.room.on("trackPublished", (track) => {
-    });
+    this.ctx.room.on("trackPublished", (track) => {});
   }
 
   private parseMessage(payload: Uint8Array): MessageData {
@@ -116,7 +116,6 @@ class AgentHandler {
     };
 
     const result = await this.liveKitProcess.handleInput(input);
-    console.log("Processing result:", result);
 
     if (result.isInterrupt) {
       console.log("Interrupt detected, handling...");
@@ -125,10 +124,12 @@ class AgentHandler {
     await this.drainAndPublish(result);
   }
 
-  private async handleProcessingResult(result: ProcessingResult | undefined): Promise<void> {
+  private async handleProcessingResult(
+    result: ProcessingResult | undefined
+  ): Promise<void> {
     if (!result) {
       this.publishError("No result from processing");
-      await this.voiceHandler.speakMessage("Sorry, there was a processing error");
+      await this.voiceHandler.onExit();
       return;
     }
 
@@ -141,7 +142,7 @@ class AgentHandler {
       }
 
       if (result.output.message) {
-        await this.voiceHandler.speakMessage(result.output.message);
+        await this.voiceHandler.onMessage(result.output.message);
       }
 
       this.publishData(result.output);
@@ -151,9 +152,8 @@ class AgentHandler {
     if (result.error) {
       console.log("Error:", result.error);
       this.publishError(result.error);
-      await this.voiceHandler.speakMessage(
-        `Sorry, there was an error: ${result.error}`
-      );
+      await this.voiceHandler.onExit();
+      return;
     }
   }
 

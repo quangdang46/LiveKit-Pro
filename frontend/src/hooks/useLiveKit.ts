@@ -1,5 +1,14 @@
-import { useState, useCallback, useEffect } from "react";
-import { Participant, Room, RoomEvent, TrackPublication } from "livekit-client";
+import { useState, useCallback, useEffect, useRef } from "react";
+import {
+  Participant,
+  RemoteAudioTrack,
+  RemoteParticipant,
+  RemoteTrack,
+  RemoteTrackPublication,
+  Room,
+  RoomEvent,
+  TrackPublication,
+} from "livekit-client";
 import { livekitApi } from "@/api";
 
 type UseLiveKitReturn = {
@@ -16,6 +25,7 @@ type UseLiveKitReturn = {
   sendDtmf: (digit: string) => Promise<void>;
   log: string[];
   isPlaying: boolean;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
 };
 
 export function useLiveKit(): UseLiveKitReturn {
@@ -25,7 +35,7 @@ export function useLiveKit(): UseLiveKitReturn {
   const [error, setError] = useState<string | null>(null);
   const [log, setLog] = useState<string[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
-
+  const audioRef = useRef<HTMLAudioElement>(null);
   const connect = useCallback(
     async (roomName: string, userName: string, scriptId: string) => {
       try {
@@ -114,7 +124,8 @@ export function useLiveKit(): UseLiveKitReturn {
 
   useEffect(() => {
     if (!room) return;
-    room.localParticipant.setScreenShareEnabled(true);
+    // room.localParticipant.setScreenShareEnabled(true);
+    // room.localParticipant.enableCameraAndMicrophone();
   }, [room]);
 
   useEffect(() => {
@@ -156,39 +167,30 @@ export function useLiveKit(): UseLiveKitReturn {
       console.log("Agent: Call ended room disconnected");
     });
 
-    room.on(RoomEvent.TrackPublished, (trackPublication, participant) => {
-      if (
-        participant?.identity?.includes("agent") &&
-        trackPublication.kind === "audio"
-      ) {
-        console.log("Agent started speaking:", {
-          participant: participant.identity,
-          trackSid: trackPublication.trackSid,
-          timestamp: new Date().toISOString(),
-        });
-
-        setLog((prev) => [
-          ...prev,
-          `[${new Date().toLocaleString()}]\nAgent started speaking\n\n`,
-        ]);
+    room.on(
+      RoomEvent.TrackSubscribed,
+      (
+        track: RemoteTrack,
+        pub: RemoteTrackPublication,
+        participant: RemoteParticipant
+      ) => {
+        if (track.kind === "audio" && participant.identity.includes("agent")) {
+          console.log("Subscribed to agent audio:", {
+            participant: participant.identity,
+            trackSid: pub.trackSid,
+          });
+          (track as RemoteAudioTrack).attach(audioRef.current!);
+        }
       }
-    });
+    );
 
-    room.on(RoomEvent.TrackUnpublished, (trackPublication, participant) => {
-      if (
-        participant?.identity?.includes("agent") &&
-        trackPublication.kind === "audio"
-      ) {
-        console.log("Agent stopped speaking:", {
+    room.on(RoomEvent.TrackUnsubscribed, (track, pub, participant) => {
+      if (track.kind === "audio" && participant.identity.includes("agent")) {
+        console.log("Unsubscribed from agent audio:", {
           participant: participant.identity,
-          trackSid: trackPublication.trackSid,
-          timestamp: new Date().toISOString(),
+          trackSid: pub.trackSid,
         });
-
-        setLog((prev) => [
-          ...prev,
-          `[${new Date().toLocaleString()}]\nAgent stopped speaking\n\n`,
-        ]);
+        (track as RemoteAudioTrack).detach(audioRef.current!);
       }
     });
   }, [room]);
@@ -203,5 +205,6 @@ export function useLiveKit(): UseLiveKitReturn {
     sendDtmf,
     log,
     isPlaying,
+    audioRef,
   };
 }

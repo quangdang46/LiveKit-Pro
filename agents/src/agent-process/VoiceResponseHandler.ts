@@ -36,13 +36,12 @@ export class VoiceResponseHandler {
         }),
 
         tts: new cartesia.TTS({
+          apiKey: "sk_car_Vwz8FMV2iVxfWN1EgjHdpq",
           model: "sonic-2",
-          apiKey: process.env.CARTESIA_API_KEY!,
-          voice: "f786b574-daa5-4673-aa0c-cbe3e8534c02",
-          chunkTimeout: 60000,
-        }),
 
-        turnDetection: new livekit.turnDetector.MultilingualModel(),
+          chunkTimeout: 30000,
+          // process.env.CARTESIA_API_KEY || "sk_car_Vwz8FMV2iVxfWN1EgjHdpq",
+        }),
       });
 
       await this.voiceSession.start({
@@ -60,19 +59,22 @@ export class VoiceResponseHandler {
     }
   }
 
-  async speakMessage(message: string): Promise<void> {
-    if (!this.voiceSession) {
-      console.error("Voice session not initialized");
-      return;
-    }
+  async onEnter(): Promise<void> {
+    this.voiceSession?.generateReply({
+      instructions: "Say exactly: 'Hello, how can I help you today?'",
+    });
+  }
 
-    try {
-      this.voiceSession.generateReply({
-        instructions: `Say exactly: "${message}"`,
-      });
-    } catch (error) {
-      console.error("Failed to generate voice reply:", error);
-    }
+  async onExit(): Promise<void> {
+    this.voiceSession?.generateReply({
+      instructions: "Tell the user a friendly goodbye before you exit.",
+    });
+  }
+
+  async onMessage(message: string): Promise<void> {
+    this.voiceSession?.generateReply({
+      instructions: `Say exactly: "${message}"`,
+    });
   }
 
   isInitialized(): boolean {
