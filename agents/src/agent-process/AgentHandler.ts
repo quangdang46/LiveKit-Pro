@@ -142,6 +142,10 @@ class AgentHandler {
       }
 
       if (result.output.message) {
+        console.log(
+          "result.output.message===>",
+          result.output.message.startsWith("Welcome")
+        );
         await this.voiceHandler.onMessage(result.output.message);
       }
 

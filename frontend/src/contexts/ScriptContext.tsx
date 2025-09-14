@@ -14,16 +14,11 @@ import {
   CreateScriptRequest,
 } from "@/types/node";
 import { Room } from "livekit-client";
-import { useLiveKit } from "@/hooks/useLiveKit";
 type ScriptContextType = {
   // State
   scripts: ScriptResponse[];
   loading: boolean;
   error: string | null;
-  testCallRoom: Room | null;
-  testCallLog: string[];
-  isPlayingAudio: boolean;
-  audioRef: React.RefObject<HTMLAudioElement | null>;
   // Actions
   addScript: (newScript: CreateScriptRequest) => Promise<void>;
   deleteScript: (id: string) => Promise<void>;
@@ -33,10 +28,6 @@ type ScriptContextType = {
   ) => Promise<void>;
   refreshScripts: () => Promise<void>;
   clearError: () => void;
-
-  startTestCall: (scriptId: string) => Promise<void>;
-  endTestCall: () => void;
-  handleButtonClick: (button: string) => void;
 };
 
 const ScriptContext = createContext<ScriptContextType | undefined>(undefined);
@@ -49,7 +40,6 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
   const [scripts, setScripts] = useState<ScriptResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const liveKit = useLiveKit();
 
   const fetchScripts = async () => {
     try {
@@ -121,29 +111,6 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
     setError(null);
   };
 
-  const startTestCall = async (scriptId: string) => {
-    try {
-      setError(null);
-
-      const roomName = `test-call-${scriptId}-${Date.now()}`;
-      const userName = `test-user-${scriptId}-${Date.now()}`;
-
-      await liveKit.connect(roomName, userName, scriptId);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to start test call"
-      );
-      throw err;
-    }
-  };
-
-  const handleButtonClick = (button: string) => {
-    liveKit.sendDtmf(button);
-  };
-
-  const endTestCall = () => {
-    liveKit.disconnect();
-  };
 
   useEffect(() => {
     fetchScripts();
@@ -158,13 +125,6 @@ export function ScriptProvider({ children }: ScriptProviderProps) {
     updateScript,
     refreshScripts,
     clearError,
-    testCallRoom: liveKit.room,
-    startTestCall,
-    endTestCall,
-    handleButtonClick,
-    testCallLog: liveKit.log,
-    isPlayingAudio: liveKit.isPlaying,
-    audioRef: liveKit.audioRef,
   };
 
   return (

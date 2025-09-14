@@ -1,36 +1,94 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useScripts } from "@/contexts/ScriptContext";
+import { useLiveKit } from "@/hooks/useLiveKit";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import StartCall from "@/components/StartCall";
 
 export default function CallingPage() {
   const searchParams = useSearchParams();
   const scriptId = searchParams.get("scriptId");
   const router = useRouter();
+  const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
+  const [isCallStarted, setIsCallStarted] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const {
-    startTestCall,
-    handleButtonClick,
-    testCallLog,
-    endTestCall,
+    connect,
+    disconnect,
+    sendDtmf,
+    log,
     audioRef,
-  } = useScripts();
-  useEffect(() => {
-    if (scriptId) {
-      startTestCall(scriptId);
+    isConnected,
+    error,
+  } = useLiveKit();
+  const unlockAudio = async () => {
+    try {
+      if (window.AudioContext || (window as any).webkitAudioContext) {
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        const audioContext = new AudioContext();
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume();
+        }
+      }
+
+      if (audioRef.current) {
+        audioRef.current.muted = false;
+      }
+
+      setIsAudioUnlocked(true);
+    } catch (error) {
+      console.error('Failed to unlock audio:', error);
     }
-  }, [scriptId]);
+  };
+
+  const startCall = async () => {
+    if (!scriptId) return;
+
+    try {
+      setIsConnecting(true);
+      await unlockAudio();
+
+      const roomName = `test-call-${scriptId}-${Date.now()}`;
+      const userName = `test-user-${scriptId}-${Date.now()}`;
+
+      await connect(roomName, userName, scriptId);
+      setIsCallStarted(true);
+    } catch (error) {
+      console.error('Failed to start call:', error);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
 
   const onClick = (b: string) => {
-    handleButtonClick(b);
+    sendDtmf(b);
   };
 
   const onEndCall = () => {
-    endTestCall();
+    disconnect();
     router.push("/");
   };
+
+  useEffect(() => {
+    if (isConnected && !isCallStarted) {
+      setIsCallStarted(true);
+    }
+  }, [isConnected, error]);
+
+  if (!isCallStarted) {
+    return (
+      <>
+        <StartCall
+          scriptId={scriptId}
+          isConnecting={isConnecting}
+          error={error}
+          onStartCall={startCall}
+        />
+      </>
+    );
+  }
 
   return (
     <>
@@ -64,15 +122,15 @@ export default function CallingPage() {
 
         <div className="w-2/3 p-4 bg-white border-l border-gray-200">
           <div className="h-full text-black p-4 rounded font-mono text-sm overflow-y-auto">
-            {testCallLog.map((log, index) => (
+            {log.map((logEntry, index) => (
               <div className="mb-2 text-xs" key={index}>
-                {log}
+                {logEntry}
               </div>
             ))}
           </div>
         </div>
       </div>
-      <audio ref={audioRef} autoPlay playsInline />
+      <audio ref={audioRef} autoPlay playsInline muted={!isCallStarted} />
     </>
   );
 }
