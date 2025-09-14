@@ -125,14 +125,11 @@ export function useLiveKit(): UseLiveKitReturn {
   useEffect(() => {
     if (!room) return;
     // room.localParticipant.setScreenShareEnabled(true);
-    // room.localParticipant.enableCameraAndMicrophone();
+    room.localParticipant.enableCameraAndMicrophone();
   }, [room]);
 
   useEffect(() => {
     if (!room) return;
-    // room.localParticipant.setMicrophoneEnabled(true);
-    // room.localParticipant.setCameraEnabled(true);
-    // room.localParticipant.setAudioContext(new AudioContext());
 
     room.on(RoomEvent.DataReceived, (payload, participant) => {
       const decoder = new TextDecoder();

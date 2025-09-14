@@ -36,11 +36,9 @@ export class VoiceResponseHandler {
         }),
 
         tts: new cartesia.TTS({
-          apiKey: "sk_car_Vwz8FMV2iVxfWN1EgjHdpq",
+          apiKey: process.env.CARTESIA_API_KEY!,
           model: "sonic-2",
-
           chunkTimeout: 30000,
-          // process.env.CARTESIA_API_KEY || "sk_car_Vwz8FMV2iVxfWN1EgjHdpq",
         }),
       });
 
@@ -50,9 +48,27 @@ export class VoiceResponseHandler {
         inputOptions: {
           noiseCancellation: BackgroundVoiceCancellation(),
         },
+        outputOptions: {
+          audioEnabled: true,
+          transcriptionEnabled: false,
+        },
       });
 
-      console.log("VoiceResponseHandler initialized successfully");
+      // stt
+      this.voiceSession.on(
+        voice.AgentSessionEventTypes.UserInputTranscribed,
+        (ev) => {
+          console.log("Transcript:", ev);
+        }
+      );
+
+      // llm
+      this.voiceSession.on(
+        voice.AgentSessionEventTypes.ConversationItemAdded,
+        (ev) => {
+          console.log("LLM response:", ev.item.content);
+        }
+      );
     } catch (error) {
       console.error("Failed to initialize VoiceResponseHandler:", error);
       throw error;
@@ -60,21 +76,21 @@ export class VoiceResponseHandler {
   }
 
   async onEnter(): Promise<void> {
-    this.voiceSession?.generateReply({
-      instructions: "Say exactly: 'Hello, how can I help you today?'",
-    });
+    // this.voiceSession?.generateReply({
+    //   instructions: "Say exactly: 'Hello, how can I help you today?'",
+    // });
+    this.voiceSession?.say("Hello, how can I help you today?");
   }
 
   async onExit(): Promise<void> {
-    this.voiceSession?.generateReply({
-      instructions: "Tell the user a friendly goodbye before you exit.",
-    });
+    this.voiceSession?.say("Tell the user a friendly goodbye before you exit.");
   }
 
   async onMessage(message: string): Promise<void> {
-    this.voiceSession?.generateReply({
-      instructions: `Say exactly: "${message}"`,
-    });
+    // this.voiceSession?.generateReply({
+    //   instructions: `Say exactly: "${message}"`,
+    // });
+    this.voiceSession?.say(message);
   }
 
   isInitialized(): boolean {
