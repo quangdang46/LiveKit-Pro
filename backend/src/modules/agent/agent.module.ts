@@ -2,7 +2,6 @@ import { Module, Provider } from '@nestjs/common';
 import { AgentService } from './agent.service';
 import {
   AgentDispatchClient,
-  EgressClient,
   RoomServiceClient,
   WebhookReceiver,
 } from 'livekit-server-sdk';
@@ -56,11 +55,6 @@ const createRoomServiceClient = (
   return new RoomServiceClient(url, apiKey, apiSecret);
 };
 
-const createEgressClient = (configService: ConfigService): EgressClient => {
-  const { apiKey, apiSecret, url } = getLiveKitConfig(configService);
-  return new EgressClient(url!, apiKey, apiSecret);
-};
-
 const PROVIDERS: Provider[] = [
   AgentService,
   {
@@ -78,11 +72,6 @@ const PROVIDERS: Provider[] = [
     useFactory: createRoomServiceClient,
     inject: [ConfigService],
   },
-  {
-    provide: EgressClient,
-    useFactory: createEgressClient,
-    inject: [ConfigService],
-  },
 ];
 
 @Module({
@@ -93,7 +82,6 @@ const PROVIDERS: Provider[] = [
     AgentDispatchClient,
     WebhookReceiver,
     RoomServiceClient,
-    EgressClient,
   ],
 })
 export class AgentModule {}

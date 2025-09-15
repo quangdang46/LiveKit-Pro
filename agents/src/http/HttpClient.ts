@@ -1,6 +1,6 @@
 export class HttpClient {
   constructor(
-    private baseUrl: string = process.env.API_URL ?? "http://localhost:3000",
+    private baseUrl: string = "http://localhost:3000",
     private headers: Record<string, string> = {}
   ) {}
 
@@ -19,7 +19,6 @@ export class HttpClient {
       },
       body: JSON.stringify(body),
     });
-
 
     if (!res.ok) {
       throw new Error(`HTTP Error: ${res.status}`);

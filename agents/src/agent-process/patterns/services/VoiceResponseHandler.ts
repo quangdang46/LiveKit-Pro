@@ -37,7 +37,6 @@ export class VoiceResponseHandler {
         tts: new cartesia.TTS({
           apiKey: process.env.CARTESIA_API_KEY!,
           model: "sonic-2",
-          chunkTimeout: 30000,
         }),
       });
 

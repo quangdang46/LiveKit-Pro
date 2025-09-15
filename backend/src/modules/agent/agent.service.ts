@@ -87,6 +87,8 @@ export class AgentService {
       rawBuffer.toString('utf8'),
       authHeader,
     )) as WebhookEvent;
+
+    console.log('EVENT', event.event);
     if (
       event.event === 'participant_joined' &&
       !event.participant?.identity.includes('agent')

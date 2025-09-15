@@ -3,7 +3,7 @@ import { RecordingResponse } from "../types";
 
 export class RecordingClient extends HttpClient {
   constructor() {
-    super();
+    super(process.env.RECORDING_API_URL ?? "http://localhost:3002");
   }
 
   async startRecording(
@@ -11,7 +11,6 @@ export class RecordingClient extends HttpClient {
     participantId: string,
     maxDuration = 60
   ): Promise<RecordingResponse> {
-
     try {
       const response = await this.post<RecordingResponse>("/recording/start", {
         roomName,
@@ -28,26 +27,17 @@ export class RecordingClient extends HttpClient {
   }
 
   async stopRecording(egressId: string) {
-    console.log(
-      "Stopping recording request to backend...",
-      {
-        egressId,
-        endpoint: "/recording/stop",
-      }
-    );
+    console.log("Stopping recording request to backend...", {
+      egressId,
+      endpoint: "/recording/stop",
+    });
 
     try {
       const response = await this.post("/recording/stop", { egressId });
-      console.log(
-        "Stop recording request successful:",
-        response
-      );
+      console.log("Stop recording request successful:", response);
       return response;
     } catch (error) {
-      console.error(
-        "Stop recording request failed:",
-        error
-      );
+      console.error("Stop recording request failed:", error);
       throw error;
     }
   }
