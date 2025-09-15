@@ -45,6 +45,8 @@ export class RecordingService {
   }
 
   async stopEgress(egressId: string) {
-    return this.egressService.stopEgress(egressId);
+    const result = await this.egressService.stopEgress(egressId);
+    console.log('Screen share recording stopped:', result);
+    return result;
   }
 }

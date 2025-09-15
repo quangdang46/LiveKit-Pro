@@ -78,11 +78,14 @@ export class AgentServiceFacade {
       );
     });
 
-    this.ctx.room.on(RoomEvent.Disconnected, () => {
-      console.log("Room disconnected, call ended!");
+    this.ctx.room.on(RoomEvent.Disconnected, async (participant) => {
+      console.log("Room disconnected, call ended!", participant);
+      // await this.voiceHandler.cleanup();
+      // await this.handleParticipantDisconnected(participant);
     });
 
     this.ctx.room.on(RoomEvent.ParticipantDisconnected, async (p) => {
+      console.log("Participant disconnected:", p.identity);
       await this.handleParticipantDisconnected(p);
     });
 
@@ -124,6 +127,7 @@ export class AgentServiceFacade {
       console.log("Error:", result.error);
       this.publishError(result.error);
       await this.voiceHandler.onExit();
+      this.ctx.room?.disconnect();
       return;
     }
   }
@@ -150,6 +154,7 @@ export class AgentServiceFacade {
           console.error("Failed to stop recording on disconnect:", error)
       );
     }
+    this.ctx.room.disconnect();
   }
 
   private publishData(data: any): void {
