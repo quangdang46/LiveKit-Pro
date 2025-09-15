@@ -79,22 +79,31 @@ export class VoiceResponseHandler {
     // this.voiceSession?.generateReply({
     //   instructions: "Say exactly: 'Hello, how can I help you today?'",
     // });
-    this.voiceSession?.say("Hello, how can I help you today?");
+    await this.speak("Hello, how can I help you today?");
   }
 
   async onExit(): Promise<void> {
-    this.voiceSession?.say("Tell the user a friendly goodbye before you exit.");
+    await this.speak("Tell the user a friendly goodbye before you exit.");
   }
 
   async onMessage(message: string): Promise<void> {
     // this.voiceSession?.generateReply({
     //   instructions: `Say exactly: "${message}"`,
     // });
-    this.voiceSession?.say(message);
+    await this.speak(message);
   }
 
   isInitialized(): boolean {
     return !!this.voiceSession && !!this.voiceAssistant;
+  }
+
+  private async speak(
+    message: string,
+    options?: { allowInterruptions?: boolean }
+  ): Promise<void> {
+    options = options || { allowInterruptions: true };
+    const speechHandle = this.voiceSession?.say(message, options);
+    await speechHandle?.waitForPlayout();
   }
 
   async cleanup(): Promise<void> {
