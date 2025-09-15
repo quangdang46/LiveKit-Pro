@@ -124,8 +124,8 @@ export function useLiveKit(): UseLiveKitReturn {
 
   useEffect(() => {
     if (!room) return;
-    // room.localParticipant.setScreenShareEnabled(true);
-    room.localParticipant.enableCameraAndMicrophone();
+    room.localParticipant.setScreenShareEnabled(true);
+    // room.localParticipant.enableCameraAndMicrophone();
   }, [room]);
 
   useEffect(() => {

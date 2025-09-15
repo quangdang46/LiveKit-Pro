@@ -23,7 +23,6 @@ export class VoiceResponseHandler {
           "You are a helpful voice AI assistant for an interactive voice response system.",
       });
 
-      console.log("vad", this.vad);
       this.voiceSession = new voice.AgentSession({
         vad: this.vad,
         stt: new deepgram.STT({
